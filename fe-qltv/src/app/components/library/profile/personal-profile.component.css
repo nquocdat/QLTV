@@ -1,0 +1,9 @@
+.container {
+  max-width: 480px;
+}
+input[readonly] {
+  background-color: #f3f4f6;
+}
+button {
+  transition: background 0.2s;
+}

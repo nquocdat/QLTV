@@ -1,0 +1,689 @@
+{
+  "info": {
+    "_postman_id": "qltv-api-collection",
+    "name": "QLTV Library Management System API",
+    "description": "API collection for Library Management System backend testing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8081/api",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', response.token);",
+                  "    pm.test('Login successful', function () {",
+                  "        pm.expect(pm.response.code).to.eql(200);",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Login failed', function () {",
+                  "        pm.expect(pm.response.code).to.not.eql(200);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@library.com\",\n    \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"testuser@library.com\",\n    \"password\": \"password123\",\n    \"phoneNumber\": \"0123456789\",\n    \"address\": \"123 Test Street\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Books Management",
+      "item": [
+        {
+          "name": "Get All Books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books",
+              "host": ["{{base_url}}"],
+              "path": ["books"]
+            }
+          }
+        },
+        {
+          "name": "Get Book by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books/1",
+              "host": ["{{base_url}}"],
+              "path": ["books", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Sample Book Title\",\n    \"author\": \"Sample Author\",\n    \"isbn\": \"978-0-123456-78-9\",\n    \"publisher\": \"Sample Publisher\",\n    \"publishedDate\": \"2024-01-15\",\n    \"category\": \"Fiction\",\n    \"genre\": \"Mystery\",\n    \"totalCopies\": 5,\n    \"availableCopies\": 5,\n    \"description\": \"This is a sample book description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/books",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "books"]
+            }
+          }
+        },
+        {
+          "name": "Update Book",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Updated Book Title\",\n    \"author\": \"Updated Author\",\n    \"isbn\": \"978-0-123456-78-9\",\n    \"publisher\": \"Updated Publisher\",\n    \"publishedDate\": \"2024-01-15\",\n    \"category\": \"Non-Fiction\",\n    \"genre\": \"Biography\",\n    \"totalCopies\": 3,\n    \"availableCopies\": 2,\n    \"description\": \"Updated book description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/books/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "books", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Book",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/books/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "books", "1"]
+            }
+          }
+        },
+        {
+          "name": "Search Books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books/search?title=Java&author=&category=Programming",
+              "host": ["{{base_url}}"],
+              "path": ["books", "search"],
+              "query": [
+                {
+                  "key": "title",
+                  "value": "Java"
+                },
+                {
+                  "key": "author",
+                  "value": ""
+                },
+                {
+                  "key": "category",
+                  "value": "Programming"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"New User\",\n    \"email\": \"newuser@library.com\",\n    \"password\": \"password123\",\n    \"phoneNumber\": \"0987654321\",\n    \"address\": \"456 New Street\",\n    \"role\": \"ROLE_USER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated User Name\",\n    \"email\": \"updateduser@library.com\",\n    \"phoneNumber\": \"0111222333\",\n    \"address\": \"789 Updated Street\",\n    \"role\": \"ROLE_LIBRARIAN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Toggle User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users/1/toggle-status",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", "1", "toggle-status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loans Management",
+      "item": [
+        {
+          "name": "Get All Loans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/loans",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "loans"]
+            }
+          }
+        },
+        {
+          "name": "Get User Loans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/loans",
+              "host": ["{{base_url}}"],
+              "path": ["loans"]
+            }
+          }
+        },
+        {
+          "name": "Create Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"patronId\": 1,\n    \"bookId\": 1,\n    \"dueDate\": \"2024-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/loans",
+              "host": ["{{base_url}}"],
+              "path": ["loans"]
+            }
+          }
+        },
+        {
+          "name": "Return Loan",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/loans/1/return",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "1", "return"]
+            }
+          }
+        },
+        {
+          "name": "Extend Loan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newDueDate\": \"2025-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/loans/1/extend",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "1", "extend"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories Management",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/categories",
+              "host": ["{{base_url}}"],
+              "path": ["categories"]
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Programming\",\n    \"description\": \"Books about programming and software development\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/categories",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Software Development\",\n    \"description\": \"Updated description for programming books\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/categories/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "categories", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/categories/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "categories", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authors Management",
+      "item": [
+        {
+          "name": "Get All Authors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/authors",
+              "host": ["{{base_url}}"],
+              "path": ["authors"]
+            }
+          }
+        },
+        {
+          "name": "Create Author",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"biography\": \"Famous author of many books\",\n    \"birthDate\": \"1970-05-15\",\n    \"nationality\": \"American\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/authors",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "authors"]
+            }
+          }
+        },
+        {
+          "name": "Update Author",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Smith\",\n    \"biography\": \"Updated biography\",\n    \"birthDate\": \"1970-05-15\",\n    \"nationality\": \"Canadian\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/authors/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "authors", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Author",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/authors/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "authors", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Publishers Management",
+      "item": [
+        {
+          "name": "Get All Publishers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/publishers",
+              "host": ["{{base_url}}"],
+              "path": ["publishers"]
+            }
+          }
+        },
+        {
+          "name": "Create Publisher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Tech Publishing House\",\n    \"address\": \"123 Publisher Street\",\n    \"phone\": \"0123456789\",\n    \"email\": \"contact@techpublishing.com\",\n    \"website\": \"https://www.techpublishing.com\",\n    \"country\": \"Vietnam\",\n    \"establishedYear\": 2000,\n    \"description\": \"Leading technology book publisher\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/publishers",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "publishers"]
+            }
+          }
+        },
+        {
+          "name": "Update Publisher",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Advanced Tech Publishing\",\n    \"address\": \"456 Updated Street\",\n    \"phone\": \"0987654321\",\n    \"email\": \"info@advancedtech.com\",\n    \"website\": \"https://www.advancedtech.com\",\n    \"country\": \"Vietnam\",\n    \"establishedYear\": 1995,\n    \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/publishers/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "publishers", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Publisher",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/publishers/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "publishers", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports & Analytics",
+      "item": [
+        {
+          "name": "Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/reports/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reports", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Books Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/reports/books?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reports", "books"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Loans Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/reports/loans?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reports", "loans"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Users Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/reports/users?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reports", "users"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Analytics Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/analytics?period=monthly",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "analytics"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "monthly"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

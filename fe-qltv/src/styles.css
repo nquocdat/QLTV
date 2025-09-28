@@ -1,0 +1,123 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Global styles */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
+/* Custom component styles with Tailwind */
+@layer components {
+  .success-snackbar {
+    @apply bg-green-500 text-white;
+  }
+
+  .error-snackbar {
+    @apply bg-red-500 text-white;
+  }
+
+  .info-snackbar {
+    @apply bg-blue-500 text-white;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+}
+
+.mat-elevation-z8 {
+  box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0px 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Material Form Field Spacing Fix */
+.mat-mdc-form-field {
+  margin-bottom: 0 !important;
+}
+
+.mat-mdc-form-field + .mat-mdc-form-field {
+  margin-top: 16px;
+}
+
+.mat-mdc-form-field .mdc-text-field {
+  padding: 12px 16px;
+}
+
+.mat-mdc-form-field .mdc-text-field--filled {
+  border-radius: 8px;
+}
+
+.mat-mdc-form-field .mdc-floating-label {
+  padding: 0 4px;
+  background: white;
+}
+
+.mat-mdc-form-field.mat-focused .mdc-floating-label {
+  color: inherit;
+}
+
+/* Fix input padding and height */
+.mat-mdc-input-element {
+  padding: 8px 0 !important;
+  min-height: 20px;
+}
+
+/* Consistent form spacing */
+.form-container {
+  @apply space-y-5;
+}
+
+.form-container .mat-mdc-form-field {
+  @apply w-full;
+  margin-bottom: 0;
+}
+
+/* Fix routerLinkActive and active menu item styles */
+.router-link-active,
+.active {
+  background-color: transparent !important;
+  color: #3b82f6 !important; /* text-indigo-600 */
+  font-weight: 600;
+  border-bottom: 2px solid #3b82f6;
+}
+
+/* Ensure menu item text is always visible */
+nav a {
+  background: transparent !important;
+  color: #1e293b; /* text-gray-700 */
+}
+
+nav a.router-link-active {
+  color: #3b82f6 !important;
+  font-weight: 600;
+  border-bottom: 2px solid #3b82f6;
+}

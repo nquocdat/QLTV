@@ -1,0 +1,267 @@
+.membership-management {
+  min-height: 100vh;
+}
+
+/* Tier card styles */
+.tier-card {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.tier-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.tier-basic {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-color: #d1d5db;
+}
+
+.tier-vip {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #93c5fd;
+}
+
+.tier-premium {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fbbf24;
+  position: relative;
+}
+
+.tier-premium::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f59e0b, #d97706, #f59e0b);
+}
+
+/* Progress bar animations */
+.progress-bar {
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+  height: 8px;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  border-radius: 9999px;
+  position: relative;
+  transition: width 0.8s ease-in-out;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Member avatar styles */
+.member-avatar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.member-avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Rating badges */
+.rating-excellent {
+  background-color: #d1fae5;
+  color: #065f46;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.2);
+}
+
+.rating-good {
+  background-color: #dbeafe;
+  color: #1e40af;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2);
+}
+
+.rating-average {
+  background-color: #fef3c7;
+  color: #92400e;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.2);
+}
+
+.rating-poor {
+  background-color: #fee2e2;
+  color: #991b1b;
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Notification styles */
+.notification-item {
+  transition: all 0.2s ease;
+  border-left: 4px solid transparent;
+}
+
+.notification-item:hover {
+  background-color: #f9fafb;
+  border-left-color: #6366f1;
+  transform: translateX(4px);
+}
+
+.notification-reminder {
+  border-left-color: #3b82f6;
+}
+
+.notification-overdue {
+  border-left-color: #ef4444;
+}
+
+.notification-available {
+  border-left-color: #10b981;
+}
+
+/* Modal animations */
+.modal-overlay {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Table enhancements */
+.member-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.member-table th {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.member-table tr:hover {
+  background-color: #f8fafc;
+  transform: scale(1.01);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Button styles */
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Loading animation */
+.loading-spinner {
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tier-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .member-table {
+    font-size: 0.875rem;
+  }
+}
+
+/* Benefit list styling */
+.benefit-list {
+  list-style: none;
+  padding: 0;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  transition: color 0.2s ease;
+}
+
+.benefit-item:hover {
+  color: #4f46e5;
+}
+
+.benefit-check {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 2px;
+}

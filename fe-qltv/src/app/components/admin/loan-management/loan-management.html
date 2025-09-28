@@ -1,0 +1,567 @@
+<!-- Header Actions -->
+<div class="bg-white rounded-lg shadow mb-6 p-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-xl font-semibold text-gray-900">Quản lý mượn trả sách</h2>
+      <p class="text-gray-600 mt-1">Theo dõi và quản lý các giao dịch mượn trả sách</p>
+    </div>
+    <button
+      (click)="openCreateLoanModal()"
+      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    >
+      <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
+      </svg>
+      Tạo phiếu mượn
+    </button>
+  </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center">
+      <div class="p-3 rounded-full bg-blue-100">
+        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
+        </svg>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-gray-600">Đang mượn</p>
+        <p class="text-2xl font-semibold text-gray-900">{{ activeLoanCount }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center">
+      <div class="p-3 rounded-full bg-yellow-100">
+        <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-gray-600">Quá hạn</p>
+        <p class="text-2xl font-semibold text-gray-900">{{ overdueLoanCount }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center">
+      <div class="p-3 rounded-full bg-green-100">
+        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-gray-600">Đã trả</p>
+        <p class="text-2xl font-semibold text-gray-900">{{ returnedLoanCount }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center">
+      <div class="p-3 rounded-full bg-indigo-100">
+        <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+          />
+        </svg>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-gray-600">Tổng phiếu</p>
+        <p class="text-2xl font-semibold text-gray-900">{{ totalLoanCount }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="bg-white rounded-lg shadow mb-6 p-6">
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <!-- Search -->
+    <div class="md:col-span-2">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Tìm kiếm</label>
+      <input
+        type="text"
+        placeholder="Tìm theo tên người mượn, sách..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      />
+    </div>
+
+    <!-- Status Filter -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+      <select
+        [(ngModel)]="selectedStatus"
+        (change)="onFilterChange()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      >
+        <option value="">Tất cả</option>
+        <option value="ACTIVE">Đang mượn</option>
+        <option value="RETURNED">Đã trả</option>
+        <option value="OVERDUE">Quá hạn</option>
+      </select>
+    </div>
+
+    <!-- Date From -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Từ ngày</label>
+      <input
+        type="date"
+        [(ngModel)]="dateFrom"
+        (change)="onFilterChange()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      />
+    </div>
+
+    <!-- Date To -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Đến ngày</label>
+      <input
+        type="date"
+        [(ngModel)]="dateTo"
+        (change)="onFilterChange()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      />
+    </div>
+  </div>
+</div>
+
+<!-- Loans Table -->
+<div class="bg-white rounded-lg shadow overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Mã phiếu
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Người mượn
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Sách
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Ngày mượn
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Hạn trả
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Trạng thái
+          </th>
+          <th
+            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Thao tác
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let loan of filteredLoans" class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium text-gray-900">
+              LN{{ loan.id?.toString()?.padStart(3, '0') || '000' }}
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <div class="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                <span class="text-indigo-600 font-medium text-xs">{{
+                  getUserInitials(loan.patronName || '')
+                }}</span>
+              </div>
+              <div class="ml-3">
+                <div class="text-sm font-medium text-gray-900">{{ loan.patronName }}</div>
+                <div class="text-sm text-gray-500">{{ loan.patronEmail }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium text-gray-900">{{ loan.bookTitle }}</div>
+            <div class="text-sm text-gray-500">{{ loan.bookAuthor }}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {{ loan.loanDate | date : 'dd/MM/yyyy' }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <div [ngClass]="getDueDateClass(loan.dueDate)">
+              {{ loan.dueDate | date : 'dd/MM/yyyy' }}
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span
+              [ngClass]="getStatusBadgeClass(loan.status)"
+              class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+            >
+              {{ getStatusDisplayName(loan.status) }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <div class="flex items-center justify-end space-x-2">
+              <button
+                (click)="viewLoan(loan)"
+                class="text-indigo-600 hover:text-indigo-900 p-1"
+                title="Xem chi tiết"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+              </button>
+              <button
+                *ngIf="loan.status === 'ACTIVE'"
+                (click)="returnBook(loan)"
+                class="text-green-600 hover:text-green-900 p-1"
+                title="Trả sách"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+              <button
+                *ngIf="loan.status === 'PENDING_RETURN'"
+                (click)="confirmReturn(loan)"
+                class="text-green-600 hover:text-green-900 p-1"
+                title="Xác nhận trả sách"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+              <button
+                *ngIf="loan.status === 'ACTIVE'"
+                (click)="renewLoan(loan)"
+                class="text-yellow-600 hover:text-yellow-900 p-1"
+                title="Gia hạn"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </button>
+              <button
+                (click)="editLoan(loan)"
+                class="text-blue-600 hover:text-blue-900 p-1"
+                title="Chỉnh sửa"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+    <div class="flex items-center justify-between">
+      <div class="flex-1 flex justify-between sm:hidden">
+        <button
+          [disabled]="currentPage === 1"
+          (click)="previousPage()"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+        >
+          Trước
+        </button>
+        <button
+          [disabled]="currentPage === totalPages"
+          (click)="nextPage()"
+          class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+        >
+          Sau
+        </button>
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Hiển thị
+            <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span>
+            đến
+            <span class="font-medium">{{ Math.min(currentPage * pageSize, totalItems) }}</span>
+            trong tổng số
+            <span class="font-medium">{{ totalItems }}</span>
+            kết quả
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+            <button
+              [disabled]="currentPage === 1"
+              (click)="previousPage()"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+
+            <button
+              *ngFor="let page of getVisiblePages()"
+              [ngClass]="
+                page === currentPage
+                  ? 'bg-indigo-50 border-indigo-500 text-indigo-600'
+                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+              "
+              (click)="goToPage(page)"
+              class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              [disabled]="currentPage === totalPages"
+              (click)="nextPage()"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loan Modal -->
+<div
+  *ngIf="showLoanModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+>
+  <div
+    class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white"
+  >
+    <div class="mt-3">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900">
+          {{
+            modalMode === 'create'
+              ? 'Tạo phiếu mượn mới'
+              : modalMode === 'edit'
+              ? 'Chỉnh sửa phiếu mượn'
+              : 'Chi tiết phiếu mượn'
+          }}
+        </h3>
+        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <form *ngIf="modalMode !== 'view'" [formGroup]="loanForm" (ngSubmit)="onSubmit()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email người mượn *</label>
+            <input
+              type="email"
+              formControlName="patronEmail"
+              placeholder="Nhập email người mượn"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">ISBN sách *</label>
+            <input
+              type="text"
+              formControlName="bookIsbn"
+              placeholder="Nhập ISBN sách"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ngày mượn *</label>
+            <input
+              type="date"
+              formControlName="loanDate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Hạn trả *</label>
+            <input
+              type="date"
+              formControlName="dueDate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+            <textarea
+              formControlName="notes"
+              rows="3"
+              placeholder="Ghi chú về phiếu mượn"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+            </textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 mt-6">
+          <button
+            type="button"
+            (click)="closeModal()"
+            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            [disabled]="loanForm.invalid || isLoading"
+            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          >
+            {{ modalMode === 'create' ? 'Tạo phiếu' : 'Cập nhật' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- View Mode -->
+      <div *ngIf="modalMode === 'view' && selectedLoan" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Mã phiếu</label>
+            <p class="mt-1 text-sm text-gray-900">
+              LN{{ selectedLoan.id?.toString()?.padStart(3, '0') || '000' }}
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Trạng thái</label>
+            <p class="mt-1 text-sm text-gray-900">
+              {{ getStatusDisplayName(selectedLoan.status) }}
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Người mượn</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedLoan.patronName }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedLoan.patronEmail }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Sách</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedLoan.bookTitle }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Tác giả</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedLoan.bookAuthor }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Ngày mượn</label>
+            <p class="mt-1 text-sm text-gray-900">
+              {{ selectedLoan.loanDate | date : 'dd/MM/yyyy' }}
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Hạn trả</label>
+            <p class="mt-1 text-sm text-gray-900">
+              {{ selectedLoan.dueDate | date : 'dd/MM/yyyy' }}
+            </p>
+          </div>
+          <div *ngIf="selectedLoan.returnDate">
+            <label class="block text-sm font-medium text-gray-700">Ngày trả</label>
+            <p class="mt-1 text-sm text-gray-900">
+              {{ selectedLoan.returnDate | date : 'dd/MM/yyyy' }}
+            </p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Ghi chú</label>
+            <p class="mt-1 text-sm text-gray-900">Không có ghi chú</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

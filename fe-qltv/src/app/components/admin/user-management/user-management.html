@@ -1,0 +1,471 @@
+<!-- Header Actions -->
+<div class="bg-white rounded-lg shadow mb-6 p-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-xl font-semibold text-gray-900">Quản lý người dùng</h2>
+      <p class="text-gray-600 mt-1">Quản lý thông tin người dùng và phân quyền</p>
+    </div>
+    <button
+      (click)="openAddUserModal()"
+      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    >
+      <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
+      </svg>
+      Thêm người dùng
+    </button>
+  </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="bg-white rounded-lg shadow mb-6 p-6">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <!-- Search -->
+    <div class="md:col-span-2">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Tìm kiếm</label>
+      <input
+        type="text"
+        placeholder="Tìm theo tên, email..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      />
+    </div>
+
+    <!-- Role Filter -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Vai trò</label>
+      <select
+        [(ngModel)]="selectedRole"
+        (change)="onFilterChange()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      >
+        <option value="">Tất cả</option>
+        <option value="ROLE_ADMIN">Quản trị viên</option>
+        <option value="ROLE_LIBRARIAN">Thủ thư</option>
+        <option value="ROLE_USER">Người dùng</option>
+      </select>
+    </div>
+
+    <!-- Status Filter -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+      <select
+        [(ngModel)]="selectedStatus"
+        (change)="onFilterChange()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      >
+        <option value="">Tất cả</option>
+        <option value="true">Hoạt động</option>
+        <option value="false">Bị khóa</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Users Table -->
+<div class="bg-white rounded-lg shadow overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Người dùng
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Vai trò
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Liên hệ
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Trạng thái
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Ngày tạo
+          </th>
+          <th
+            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Thao tác
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let user of filteredUsers" class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <div class="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                <span class="text-indigo-600 font-medium text-sm">{{
+                  getUserInitials(user.name)
+                }}</span>
+              </div>
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">{{ user.name }}</div>
+                <div class="text-sm text-gray-500">{{ user.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span
+              [ngClass]="getRoleBadgeClass(user.role || '')"
+              class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+            >
+              {{ getRoleDisplayName(user.role || '') }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <div>{{ user.phoneNumber || 'Chưa cập nhật' }}</div>
+            <div class="text-gray-500 text-xs">{{ user.address || 'Chưa cập nhật' }}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span
+              [ngClass]="user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+              class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+            >
+              {{ user.isActive ? 'Hoạt động' : 'Bị khóa' }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ getCurrentDateString() }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <div class="flex items-center justify-end space-x-2">
+              <button
+                (click)="viewUser(user)"
+                class="text-indigo-600 hover:text-indigo-900 p-1"
+                title="Xem chi tiết"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+              </button>
+              <button
+                (click)="editUser(user)"
+                class="text-yellow-600 hover:text-yellow-900 p-1"
+                title="Chỉnh sửa"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </button>
+              <button
+                (click)="toggleUserStatus(user)"
+                [ngClass]="
+                  user.isActive
+                    ? 'text-red-600 hover:text-red-900'
+                    : 'text-green-600 hover:text-green-900'
+                "
+                class="p-1"
+                [title]="user.isActive ? 'Khóa tài khoản' : 'Kích hoạt tài khoản'"
+              >
+                <svg
+                  *ngIf="user.isActive"
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+                <svg
+                  *ngIf="!user.isActive"
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+    <div class="flex items-center justify-between">
+      <div class="flex-1 flex justify-between sm:hidden">
+        <button
+          [disabled]="currentPage === 1"
+          (click)="previousPage()"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+        >
+          Trước
+        </button>
+        <button
+          [disabled]="currentPage === totalPages"
+          (click)="nextPage()"
+          class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+        >
+          Sau
+        </button>
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Hiển thị
+            <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span>
+            đến
+            <span class="font-medium">{{ Math.min(currentPage * pageSize, totalItems) }}</span>
+            trong tổng số
+            <span class="font-medium">{{ totalItems }}</span>
+            kết quả
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+            <button
+              [disabled]="currentPage === 1"
+              (click)="previousPage()"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+
+            <button
+              *ngFor="let page of getVisiblePages()"
+              [ngClass]="
+                page === currentPage
+                  ? 'bg-indigo-50 border-indigo-500 text-indigo-600'
+                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+              "
+              (click)="goToPage(page)"
+              class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              [disabled]="currentPage === totalPages"
+              (click)="nextPage()"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- User Detail Modal -->
+<div
+  *ngIf="showUserModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+>
+  <div
+    class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white"
+  >
+    <div class="mt-3">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900">
+          {{
+            modalMode === 'add'
+              ? 'Thêm người dùng mới'
+              : modalMode === 'edit'
+              ? 'Chỉnh sửa người dùng'
+              : 'Chi tiết người dùng'
+          }}
+        </h3>
+        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <form *ngIf="modalMode !== 'view'" [formGroup]="userForm" (ngSubmit)="onSubmit()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Họ và tên *</label>
+            <input
+              type="text"
+              formControlName="name"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <input
+              type="email"
+              formControlName="email"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div *ngIf="modalMode === 'add'">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu *</label>
+            <input
+              type="password"
+              formControlName="password"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Vai trò *</label>
+            <select
+              formControlName="role"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="ROLE_USER">Người dùng</option>
+              <option value="ROLE_LIBRARIAN">Thủ thư</option>
+              <option value="ROLE_ADMIN">Quản trị viên</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+            <input
+              type="tel"
+              formControlName="phoneNumber"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
+            <textarea
+              formControlName="address"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+            </textarea>
+          </div>
+
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              formControlName="isActive"
+              class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            />
+            <label class="ml-2 block text-sm text-gray-700">Tài khoản hoạt động</label>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 mt-6">
+          <button
+            type="button"
+            (click)="closeModal()"
+            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            [disabled]="userForm.invalid || isLoading"
+            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          >
+            {{ modalMode === 'add' ? 'Thêm' : 'Cập nhật' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- View Mode -->
+      <div *ngIf="modalMode === 'view' && selectedUser" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Họ và tên</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedUser.name }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedUser.email }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Vai trò</label>
+            <p class="mt-1 text-sm text-gray-900">
+              {{ getRoleDisplayName(selectedUser.role || '') }}
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Trạng thái</label>
+            <p class="mt-1 text-sm text-gray-900">
+              {{ selectedUser.isActive ? 'Hoạt động' : 'Bị khóa' }}
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Số điện thoại</label>
+            <p class="mt-1 text-sm text-gray-900">
+              {{ selectedUser.phoneNumber || 'Chưa cập nhật' }}
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Ngày tạo</label>
+            <p class="mt-1 text-sm text-gray-900">
+              {{ getCurrentDateString() }}
+            </p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Địa chỉ</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedUser.address || 'Chưa cập nhật' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

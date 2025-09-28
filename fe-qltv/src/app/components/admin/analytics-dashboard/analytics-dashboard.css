@@ -1,0 +1,137 @@
+.analytics-dashboard {
+  min-height: 100vh;
+}
+
+/* Custom chart styles */
+.chart-container {
+  position: relative;
+  height: 300px;
+}
+
+/* Animation for loading */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Status indicator styles */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-available {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-borrowed {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-damaged {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Membership tier badges */
+.tier-basic {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.tier-vip {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.tier-premium {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+/* Card hover effects */
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Progress bars */
+.progress-bar {
+  height: 4px;
+  background-color: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 768px) {
+  .grid-responsive {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Table styling */
+.analytics-table th {
+  background-color: #f9fafb;
+}
+
+.analytics-table tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+/* Button animations */
+.btn-animated {
+  transition: all 0.2s ease;
+}
+
+.btn-animated:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Chart legend styles */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}

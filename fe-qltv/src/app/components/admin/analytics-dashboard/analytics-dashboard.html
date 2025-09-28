@@ -1,0 +1,321 @@
+<!-- Analytics Dashboard -->
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Thống kê & Báo cáo</h1>
+          <p class="text-gray-600 mt-2">Phân tích chi tiết hoạt động thư viện</p>
+        </div>
+        <div class="flex space-x-3">
+          <button
+            (click)="generateReport()"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Tạo báo cáo
+          </button>
+          <button
+            (click)="exportAnalytics()"
+            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Xuất Excel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="text-center py-12">
+      <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Đang tải dữ liệu...</p>
+    </div>
+
+    <div *ngIf="!loading && analytics" class="space-y-8">
+      <!-- Book Status Overview -->
+      <section class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Trạng thái sách</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div
+            *ngFor="let item of bookStatusChartData"
+            class="text-center p-4 rounded-lg border hover:shadow-md transition-shadow"
+          >
+            <div class="flex justify-center mb-2">
+              <svg
+                class="w-8 h-8"
+                [style.color]="item.color"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                />
+              </svg>
+            </div>
+            <div class="text-2xl font-bold" [style.color]="item.color">{{ item.value }}</div>
+            <div class="text-sm text-gray-600">{{ item.label }}</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Top Statistics Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">Tổng sách mượn tháng này</p>
+              <p class="text-3xl font-bold text-indigo-600">
+                {{ analytics.loanTrends[0].totalLoans || 0 }}
+              </p>
+            </div>
+            <div class="bg-indigo-100 p-3 rounded-full">
+              <svg class="w-8 h-8 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div class="mt-2 text-sm text-green-600">
+            +{{ (analytics.loanTrends && analytics.loanTrends[0].newMembers) || 0 }} thành viên mới
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">Tỷ lệ trả đúng hạn</p>
+              <p class="text-3xl font-bold text-green-600">
+                {{ (analytics.loanTrends && analytics.loanTrends[0].returnRate) || 0 }}%
+              </p>
+            </div>
+            <div class="bg-green-100 p-3 rounded-full">
+              <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">Vi phạm tháng này</p>
+              <p class="text-3xl font-bold text-red-600">
+                {{ analytics.frequentLateReturners.length }}
+              </p>
+            </div>
+            <div class="bg-red-100 p-3 rounded-full">
+              <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h2v-2h-2v2zm0-4h2V7h-2v6z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">Sách phổ biến nhất</p>
+              <p class="text-lg font-bold text-purple-600">
+                {{
+                  (analytics.popularBooks && analytics.popularBooks[0].title) || 'Chưa có dữ liệu'
+                }}
+              </p>
+            </div>
+            <div class="bg-purple-100 p-3 rounded-full">
+              <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div class="mt-2 text-sm text-purple-600">
+            {{
+              (analytics &&
+                analytics.popularBooks &&
+                analytics.popularBooks[0] &&
+                analytics.popularBooks[0].loanCount) ||
+                0
+            }}
+            lượt mượn
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Readers & Late Returners -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Top Readers -->
+        <section class="bg-white rounded-xl shadow-lg p-6">
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Top độc giả xuất sắc</h3>
+          <div class="space-y-3">
+            <div
+              *ngFor="let reader of analytics.topReaders; let i = index"
+              class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50"
+            >
+              <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0">
+                  <div
+                    [class]="
+                      'w-10 h-10 rounded-full flex items-center justify-center ' +
+                      (i === 0
+                        ? 'bg-yellow-100 text-yellow-600'
+                        : i === 1
+                        ? 'bg-gray-100 text-gray-600'
+                        : 'bg-orange-100 text-orange-600')
+                    "
+                  >
+                    <span class="font-bold">{{ i + 1 }}</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="font-medium text-gray-900">{{ reader.userName }}</div>
+                  <div class="text-sm text-gray-500">{{ reader.currentTier }}</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="font-bold text-indigo-600">{{ reader.totalLoans }}</div>
+                <div class="text-xs text-gray-500">sách mượn</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Frequent Late Returners -->
+        <section class="bg-white rounded-xl shadow-lg p-6">
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Độc giả trả muộn thường xuyên</h3>
+          <div class="space-y-3">
+            <div
+              *ngFor="let returner of analytics.frequentLateReturners"
+              class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50"
+            >
+              <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0">
+                  <div
+                    class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center"
+                  >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h2v-2h-2v2zm0-4h2V7h-2v6z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <div class="font-medium text-gray-900">{{ returner.userName }}</div>
+                  <div class="text-sm text-gray-500">Xếp hạng: {{ returner.rating }}</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="font-bold text-red-600">{{ returner.lateReturns }}</div>
+                <div class="text-xs text-gray-500">lần trả muộn</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Popular Books -->
+      <section class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Sách được mượn nhiều nhất</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            *ngFor="let book of analytics.popularBooks"
+            class="border rounded-lg p-4 hover:shadow-md transition-shadow"
+          >
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <div class="w-12 h-16 bg-indigo-100 rounded flex items-center justify-center">
+                  <svg class="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-gray-900 truncate">{{ book.title }}</div>
+                <div class="text-sm text-gray-500">{{ book.author }}</div>
+                <div class="text-sm text-gray-500">{{ book.category }}</div>
+                <div class="mt-2 flex items-center space-x-2">
+                  <span class="text-sm font-medium text-indigo-600"
+                    >{{ book.loanCount }} lượt mượn</span
+                  >
+                  <span class="text-sm text-yellow-500">★ {{ book.rating }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Membership Distribution -->
+      <section class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Phân bố thành viên</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div
+            *ngFor="let tier of analytics.membershipDistribution"
+            class="text-center p-6 rounded-lg border hover:shadow-md transition-shadow"
+          >
+            <div
+              class="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
+              [style.background-color]="tier.color + '20'"
+              [style.color]="tier.color"
+            >
+              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                />
+              </svg>
+            </div>
+            <div class="text-2xl font-bold mb-1" [style.color]="tier.color">
+              {{ tier.memberCount }}
+            </div>
+            <div class="text-gray-600 font-medium">{{ tier.tierName }}</div>
+            <div class="text-sm text-gray-500 mt-1">{{ tier.percentage }}% tổng số</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Loan Trends -->
+      <section class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">xu hướng mượn sách</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead>
+              <tr class="border-b">
+                <th class="text-left py-3 px-4 font-medium text-gray-900">Tháng</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-900">Số lượt mượn</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-900">Thành viên mới</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-900">Tỷ lệ trả đúng hạn</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let trend of analytics.loanTrends" class="border-b hover:bg-gray-50">
+                <td class="py-3 px-4">{{ trend.period }}</td>
+                <td class="py-3 px-4 font-medium">{{ trend.totalLoans }}</td>
+                <td class="py-3 px-4 text-green-600 font-medium">+{{ trend.newMembers }}</td>
+                <td class="py-3 px-4">
+                  <span
+                    [class]="
+                      trend.returnRate >= 95
+                        ? 'text-green-600'
+                        : trend.returnRate >= 90
+                        ? 'text-yellow-600'
+                        : 'text-red-600'
+                    "
+                    class="font-medium"
+                  >
+                    {{ trend.returnRate }}%
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

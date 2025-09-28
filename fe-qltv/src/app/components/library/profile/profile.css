@@ -1,0 +1,53 @@
+/* Profile Styles */
+.profile-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.membership-card {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.rating-good {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.rating-excellent {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  transition: width 0.3s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .tab-navigation {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}

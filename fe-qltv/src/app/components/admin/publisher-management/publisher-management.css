@@ -1,0 +1,323 @@
+/* Publisher Management Styles */
+.publisher-management {
+  min-height: calc(100vh - 120px);
+}
+
+/* Avatar styles for publisher initials */
+.publisher-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Table hover effects */
+.table-row:hover {
+  background-color: #f0fdf4;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Action buttons */
+.action-buttons {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.table-row:hover .action-buttons {
+  opacity: 1;
+}
+
+/* Modal animations */
+.modal-backdrop {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Form validation styles */
+.form-input.ng-invalid.ng-touched {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-input.ng-valid.ng-touched {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Search input styling */
+.search-input {
+  position: relative;
+}
+
+.search-input:focus-within {
+  transform: scale(1.02);
+  transition: transform 0.2s ease;
+}
+
+/* Loading states */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #10b981;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pagination styles */
+.pagination-button.active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-color: #10b981;
+}
+
+.pagination-button:hover:not(.active):not(:disabled) {
+  background-color: #f0fdf4;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Empty state styling */
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-state svg {
+  color: #d1d5db;
+  margin: 0 auto 16px;
+}
+
+/* Contact info styling */
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+}
+
+.contact-item svg {
+  flex-shrink: 0;
+}
+
+/* Website link styling */
+.website-link {
+  color: #10b981;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.website-link:hover {
+  color: #059669;
+  text-decoration: underline;
+}
+
+/* Address preview styling */
+.address-preview {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .publisher-management .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  .modal-content {
+    margin: 10px;
+    width: calc(100% - 20px);
+  }
+
+  .action-buttons {
+    opacity: 1;
+  }
+
+  .pagination-button {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .contact-info {
+    font-size: 0.8rem;
+  }
+}
+
+/* Success/Error message styling */
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-success {
+  background-color: #dcfce7;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.alert-error {
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.alert-info {
+  background-color: #dbeafe;
+  border: 1px solid #93c5fd;
+  color: #1e40af;
+}
+
+/* Button hover effects */
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Focus states for accessibility */
+.form-input:focus,
+.btn:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Custom scrollbar for modal */
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Header gradient for publisher management */
+.publisher-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Contact icon colors */
+.contact-icon-phone {
+  color: #10b981;
+}
+
+.contact-icon-email {
+  color: #3b82f6;
+}
+
+/* Publisher status badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-inactive {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Publisher card hover effects in grid view (if added later) */
+.publisher-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.publisher-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}

@@ -1,0 +1,101 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4 max-w-xl">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Hồ sơ cá nhân</h2>
+      <form *ngIf="editMode; else viewMode" (ngSubmit)="saveEdit()" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Họ tên</label>
+          <input
+            type="text"
+            [(ngModel)]="editedUser.name"
+            name="name"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            required
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input
+            type="email"
+            [(ngModel)]="editedUser.email"
+            name="email"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            required
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
+          <input
+            type="date"
+            [(ngModel)]="editedUser.dob"
+            name="dob"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+          <input
+            type="text"
+            [(ngModel)]="editedUser.phone"
+            name="phone"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
+          <input
+            type="text"
+            [(ngModel)]="editedUser.address"
+            name="address"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+        <div class="flex gap-2 mt-4">
+          <button
+            type="submit"
+            class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          >
+            Lưu
+          </button>
+          <button
+            type="button"
+            (click)="cancelEdit()"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+          >
+            Hủy
+          </button>
+        </div>
+      </form>
+      <ng-template #viewMode>
+        <div class="space-y-4">
+          <div>
+            <span class="block text-sm text-gray-500">Họ tên</span>
+            <span class="font-medium text-gray-900">{{ currentUser.name }}</span>
+          </div>
+          <div>
+            <span class="block text-sm text-gray-500">Email</span>
+            <span class="font-medium text-gray-900">{{ currentUser.email }}</span>
+          </div>
+          <div>
+            <span class="block text-sm text-gray-500">Ngày sinh</span>
+            <span class="font-medium text-gray-900">{{ currentUser.dob }}</span>
+          </div>
+          <div>
+            <span class="block text-sm text-gray-500">Số điện thoại</span>
+            <span class="font-medium text-gray-900">{{ currentUser.phone }}</span>
+          </div>
+          <div>
+            <span class="block text-sm text-gray-500">Địa chỉ</span>
+            <span class="font-medium text-gray-900">{{ currentUser.address }}</span>
+          </div>
+        </div>
+        <button
+          (click)="enableEdit()"
+          class="mt-6 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+        >
+          Sửa thông tin
+        </button>
+      </ng-template>
+    </div>
+  </div>
+</div>

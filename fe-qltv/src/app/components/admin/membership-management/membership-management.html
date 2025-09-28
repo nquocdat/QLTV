@@ -1,0 +1,466 @@
+<!-- Membership Management -->
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Quản lý thành viên</h1>
+          <p class="text-gray-600 mt-2">Quản lý hạng thành viên và ưu đãi</p>
+        </div>
+        <div class="flex space-x-3">
+          <button
+            (click)="scheduleReminders()"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Lên lịch nhắc nhở
+          </button>
+          <button
+            (click)="openNotificationModal()"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Gửi thông báo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center py-12">
+      <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Đang tải dữ liệu...</p>
+    </div>
+
+    <div *ngIf="!loading" class="space-y-8">
+      <!-- Membership Tiers Overview -->
+      <section class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Các hạng thành viên</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div
+            *ngFor="let tier of membershipTiers"
+            class="border rounded-xl p-6 hover:shadow-md transition-shadow"
+            [class]="
+              tier.level === 'PREMIUM'
+                ? 'border-gold-300 bg-gradient-to-br from-yellow-50 to-orange-50'
+                : tier.level === 'VIP'
+                ? 'border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50'
+                : 'border-gray-300'
+            "
+          >
+            <div class="text-center mb-4">
+              <div
+                [class]="
+                  'w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3 ' +
+                  (tier.level === 'PREMIUM'
+                    ? 'bg-yellow-100 text-yellow-600'
+                    : tier.level === 'VIP'
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-gray-100 text-gray-600')
+                "
+              >
+                <svg
+                  *ngIf="tier.level === 'PREMIUM'"
+                  class="w-8 h-8"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M5 16L3 5h5.5l1 2h5L16 5h5l-2 11H5zm2.7-2h8.6l.9-5H6.8l.9 5z" />
+                </svg>
+                <svg
+                  *ngIf="tier.level === 'VIP'"
+                  class="w-8 h-8"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                  />
+                </svg>
+                <svg
+                  *ngIf="tier.level === 'BASIC'"
+                  class="w-8 h-8"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900">{{ tier.name }}</h3>
+            </div>
+
+            <div class="space-y-2 mb-4">
+              <div *ngFor="let benefit of tier.benefits" class="flex items-start space-x-2 text-sm">
+                <svg
+                  class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                </svg>
+                <span class="text-gray-700">{{ benefit.description }}</span>
+              </div>
+            </div>
+
+            <div class="text-xs text-gray-500 border-t pt-3">
+              <div>Yêu cầu:</div>
+              <div *ngIf="tier.requirements.minLoans">
+                • Tối thiểu {{ tier.requirements.minLoans }} lượt mượn
+              </div>
+              <div *ngIf="tier.requirements.minPoints">
+                • Tối thiểu {{ tier.requirements.minPoints }} điểm
+              </div>
+              <div *ngIf="tier.requirements.maxViolations">
+                • Tối đa {{ tier.requirements.maxViolations }} vi phạm
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Members List -->
+      <section class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Danh sách thành viên</h2>
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead>
+              <tr class="border-b">
+                <th class="text-left py-3 px-4 font-medium text-gray-900">Thành viên</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-900">Hạng hiện tại</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-900">Điểm</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-900">Xếp loại</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-900">Tiến độ</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-900">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let membership of userMemberships" class="border-b hover:bg-gray-50">
+                <td class="py-3 px-4">
+                  <div class="flex items-center space-x-3">
+                    <div
+                      class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center"
+                    >
+                      <span class="text-indigo-600 font-medium">{{
+                        membership.user.name.charAt(0)
+                      }}</span>
+                    </div>
+                    <div>
+                      <div class="font-medium text-gray-900">{{ membership.user.name }}</div>
+                      <div class="text-sm text-gray-500">{{ membership.user.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-3 px-4">
+                  <span
+                    [class]="
+                      getMembershipTier(membership.tierId)?.color || 'bg-gray-100 text-gray-800'
+                    "
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                  >
+                    {{ getMembershipTier(membership.tierId)?.name }}
+                  </span>
+                </td>
+                <td class="py-3 px-4">
+                  <div class="font-medium">{{ membership.currentPoints }} điểm</div>
+                  <div class="text-sm text-gray-500">{{ membership.totalLoans }} lượt mượn</div>
+                </td>
+                <td class="py-3 px-4">
+                  <span
+                    [class]="getRatingClass(membership.rating.rating)"
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                  >
+                    {{ getRatingText(membership.rating.rating) }}
+                  </span>
+                  <div class="text-sm text-gray-500 mt-1">{{ membership.rating.score }}/100</div>
+                </td>
+                <td class="py-3 px-4">
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      class="bg-indigo-600 h-2 rounded-full"
+                      [style.width.%]="calculateNextTierProgress(membership)"
+                    ></div>
+                  </div>
+                  <div class="text-xs text-gray-500 mt-1">
+                    {{ calculateNextTierProgress(membership) | number : '1.0-1' }}% đến hạng tiếp
+                    theo
+                  </div>
+                </td>
+                <td class="py-3 px-4">
+                  <div class="flex space-x-2">
+                    <button
+                      (click)="viewUserDetails(membership.userId)"
+                      class="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+                    >
+                      Chi tiết
+                    </button>
+                    <button
+                      *ngIf="membership.tierId < 3"
+                      (click)="upgradeMembership(membership.userId, membership.tierId + 1)"
+                      class="text-green-600 hover:text-green-700 text-sm font-medium"
+                    >
+                      Nâng hạng
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Recent Notifications -->
+      <section class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Thông báo gần đây</h2>
+        <div class="space-y-3">
+          <div
+            *ngFor="let notification of notifications"
+            class="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50"
+          >
+            <div class="flex-shrink-0 mt-1">
+              <div
+                [class]="
+                  notification.type === 'REMINDER'
+                    ? 'bg-blue-100 text-blue-600'
+                    : notification.type === 'OVERDUE'
+                    ? 'bg-red-100 text-red-600'
+                    : 'bg-green-100 text-green-600'
+                "
+                class="w-8 h-8 rounded-full flex items-center justify-center"
+              >
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                    *ngIf="notification.type === 'REMINDER'"
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                  />
+                  <path
+                    *ngIf="notification.type === 'OVERDUE'"
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h2v-2h-2v2zm0-4h2V7h-2v6z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div class="flex-1">
+              <div class="font-medium text-gray-900">{{ notification.title }}</div>
+              <div class="text-sm text-gray-600">{{ notification.message }}</div>
+              <div class="text-xs text-gray-500 mt-1">
+                {{ notification.sentDate | date : 'dd/MM/yyyy HH:mm' }}
+              </div>
+            </div>
+            <div class="flex-shrink-0">
+              <span
+                *ngIf="notification.emailSent"
+                class="inline-flex items-center px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full"
+              >
+                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                  />
+                </svg>
+                Đã gửi email
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- User Detail Modal -->
+<div
+  *ngIf="showUserDetailModal && selectedUser"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+>
+  <div
+    class="relative top-20 mx-auto p-5 border w-96 md:w-1/2 lg:w-2/3 shadow-lg rounded-md bg-white"
+  >
+    <div class="mt-3">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Chi tiết thành viên</h3>
+        <button (click)="closeUserDetailModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="space-y-6">
+        <!-- User Info -->
+        <div class="bg-gray-50 rounded-lg p-4">
+          <div class="flex items-center space-x-4 mb-4">
+            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
+              <span class="text-indigo-600 text-xl font-bold">{{
+                selectedUser.user.name.charAt(0)
+              }}</span>
+            </div>
+            <div>
+              <h4 class="text-xl font-bold text-gray-900">{{ selectedUser.user.name }}</h4>
+              <p class="text-gray-600">{{ selectedUser.user.email }}</p>
+              <p class="text-sm text-gray-500">
+                Tham gia: {{ selectedUser.joinDate | date : 'dd/MM/yyyy' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Membership Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="border rounded-lg p-4">
+            <h5 class="font-medium text-gray-900 mb-2">Hạng thành viên</h5>
+            <span
+              [class]="getMembershipTier(selectedUser.tierId)?.color || 'bg-gray-100 text-gray-800'"
+              class="inline-flex px-3 py-1 text-sm font-medium rounded-full"
+            >
+              {{ getMembershipTier(selectedUser.tierId)?.name }}
+            </span>
+          </div>
+
+          <div class="border rounded-lg p-4">
+            <h5 class="font-medium text-gray-900 mb-2">Xếp loại tín nhiệm</h5>
+            <span
+              [class]="getRatingClass(selectedUser.rating.rating)"
+              class="inline-flex px-3 py-1 text-sm font-medium rounded-full"
+            >
+              {{ getRatingText(selectedUser.rating.rating) }} ({{ selectedUser.rating.score }}/100)
+            </span>
+          </div>
+
+          <div class="border rounded-lg p-4">
+            <h5 class="font-medium text-gray-900 mb-2">Điểm tích lũy</h5>
+            <p class="text-2xl font-bold text-indigo-600">{{ selectedUser.currentPoints }}</p>
+          </div>
+
+          <div class="border rounded-lg p-4">
+            <h5 class="font-medium text-gray-900 mb-2">Thống kê mượn sách</h5>
+            <div class="text-sm space-y-1">
+              <div>Tổng: {{ selectedUser.totalLoans }} lượt</div>
+              <div>Đúng hạn: {{ selectedUser.rating.onTimeReturns }} lượt</div>
+              <div>Trễ hạn: {{ selectedUser.rating.lateReturns }} lượt</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="border rounded-lg p-4">
+          <h5 class="font-medium text-gray-900 mb-3">Quyền lợi hiện tại</h5>
+          <div class="space-y-2">
+            <div
+              *ngFor="let benefit of getMembershipTier(selectedUser.tierId)?.benefits"
+              class="flex items-center space-x-2 text-sm"
+            >
+              <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+              </svg>
+              <span>{{ benefit.description }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end space-x-3 pt-4 border-t">
+          <button
+            *ngIf="selectedUser.tierId < 3"
+            (click)="upgradeMembership(selectedUser.userId, selectedUser.tierId + 1)"
+            class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          >
+            Nâng hạng
+          </button>
+          <button
+            (click)="closeUserDetailModal()"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Modal -->
+<div
+  *ngIf="showNotificationModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+>
+  <div class="relative top-20 mx-auto p-5 border w-96 md:w-1/2 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Gửi thông báo</h3>
+        <button (click)="closeNotificationModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="sendBulkNotification()" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Loại thông báo</label>
+          <select
+            [(ngModel)]="notificationForm.type"
+            name="type"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="REMINDER">Nhắc nhở</option>
+            <option value="DUE_TODAY">Đến hạn hôm nay</option>
+            <option value="OVERDUE">Quá hạn</option>
+            <option value="BOOK_AVAILABLE">Sách có sẵn</option>
+            <option value="NEW_BOOK">Sách mới</option>
+            <option value="MEMBERSHIP_UPDATE">Cập nhật thành viên</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tiêu đề</label>
+          <input
+            type="text"
+            [(ngModel)]="notificationForm.title"
+            name="title"
+            required
+            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Nhập tiêu đề thông báo"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nội dung</label>
+          <textarea
+            [(ngModel)]="notificationForm.message"
+            name="message"
+            required
+            rows="4"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Nhập nội dung thông báo"
+          ></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-4 border-t">
+          <button
+            type="submit"
+            class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+          >
+            Gửi thông báo
+          </button>
+          <button
+            type="button"
+            (click)="closeNotificationModal()"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          >
+            Hủy
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

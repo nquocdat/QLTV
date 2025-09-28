@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-BeQltvApplication<be-qltv>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.example.be_qltv.BeQltvApplication",
+      "projectName": "be-qltv",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}
