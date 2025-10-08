@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { LoanService } from '../../../services/loan.service';
+import { LoanPaymentService } from '../../../services/loan-payment.service';
+import { StatusTranslatorService } from '../../../services/status-translator.service';
 import { Loan } from '../../../models/loan.model';
 
 @Component({
@@ -43,10 +45,22 @@ export class LoanManagement implements OnInit {
   returnedLoanCount = 0;
   totalLoanCount = 0;
 
+  // Return Modal
+  showReturnModal = false;
+  returningLoan: any = null;
+  isDamaged = false;
+  damageFine = 0;
+  damageNotes = '';
+
   // Math for template
   Math = Math;
 
-  constructor(private fb: FormBuilder, private loanService: LoanService) {
+  constructor(
+    private fb: FormBuilder,
+    private loanService: LoanService,
+    private loanPaymentService: LoanPaymentService,
+    public statusTranslator: StatusTranslatorService
+  ) {
     this.initializeForm();
   }
 
@@ -119,7 +133,9 @@ export class LoanManagement implements OnInit {
 
     // Status filter
     if (this.selectedStatus) {
-      filtered = filtered.filter((loan) => loan.status === this.selectedStatus);
+      filtered = filtered.filter(
+        (loan) => loan.status?.toUpperCase() === this.selectedStatus.toUpperCase()
+      );
     }
 
     // Date range filter
@@ -133,20 +149,18 @@ export class LoanManagement implements OnInit {
       filtered = filtered.filter((loan) => new Date(loan.loanDate) <= toDate);
     }
 
-    this.filteredLoans = filtered;
+    // Update totals
     this.totalItems = filtered.length;
     this.calculateTotalPages();
-    this.paginateLoans();
+
+    // Apply pagination
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.filteredLoans = filtered.slice(startIndex, endIndex);
   }
 
   calculateTotalPages(): void {
     this.totalPages = Math.ceil(this.totalItems / this.pageSize);
-  }
-
-  paginateLoans(): void {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.filteredLoans = this.filteredLoans.slice(startIndex, endIndex);
   }
 
   previousPage(): void {
@@ -353,5 +367,136 @@ export class LoanManagement implements OnInit {
       return 'text-yellow-600 font-medium'; // Due soon
     }
     return 'text-gray-900'; // Normal
+  }
+
+  // Return Modal Methods
+  openReturnModal(loan: any): void {
+    this.returningLoan = loan;
+    this.isDamaged = false;
+    this.damageFine = 0;
+    this.damageNotes = '';
+    this.showReturnModal = true;
+  }
+
+  closeReturnModal(): void {
+    this.showReturnModal = false;
+    this.returningLoan = null;
+  }
+
+  calculateOverdueDays(): number {
+    if (!this.returningLoan) return 0;
+    const dueDate = new Date(this.returningLoan.dueDate);
+    const today = new Date();
+    if (today <= dueDate) return 0;
+
+    const diffTime = today.getTime() - dueDate.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  calculateOverdueFine(): number {
+    return this.calculateOverdueDays() * 5000; // 5,000 VND/ngày
+  }
+
+  calculateTotalFine(): number {
+    return this.calculateOverdueFine() + (this.isDamaged ? this.damageFine : 0);
+  }
+
+  confirmReturnBook(): void {
+    if (!this.returningLoan) return;
+
+    if (this.isDamaged && this.damageFine > 0) {
+      // Trả sách với phí hỏng
+      this.loanService
+        .returnBookWithDamage(this.returningLoan.id, this.damageFine, this.damageNotes)
+        .subscribe({
+          next: () => {
+            alert(
+              'Đã trả sách thành công! Phí phạt: ' +
+                this.calculateTotalFine().toLocaleString() +
+                ' VND'
+            );
+            this.closeReturnModal();
+            this.loadLoans();
+          },
+          error: (err) => {
+            console.error('Error:', err);
+            alert('Lỗi: ' + (err.error?.error || err.message));
+          },
+        });
+    } else {
+      // Trả sách bình thường
+      this.loanService.returnBook(this.returningLoan.id).subscribe({
+        next: () => {
+          const fine = this.calculateOverdueFine();
+          const msg =
+            fine > 0
+              ? 'Đã trả sách thành công! Phí phạt quá hạn: ' + fine.toLocaleString() + ' VND'
+              : 'Đã trả sách thành công!';
+          alert(msg);
+          this.closeReturnModal();
+          this.loadLoans();
+        },
+        error: (err) => {
+          console.error('Error:', err);
+          alert('Lỗi: ' + (err.error?.error || err.message));
+        },
+      });
+    }
+  }
+
+  // Confirm Cash Payment
+  confirmCashPayment(loan: any): void {
+    const currentUser = JSON.parse(sessionStorage.getItem('auth-user') || '{}');
+    const confirmedBy = currentUser.id;
+
+    if (!confirmedBy) {
+      alert('Không tìm thấy thông tin người dùng!');
+      return;
+    }
+
+    if (
+      !confirm(
+        'Xác nhận đã thu tiền mặt ' +
+          loan.depositAmount?.toLocaleString() +
+          ' VND từ ' +
+          loan.patronName +
+          '?'
+      )
+    ) {
+      return;
+    }
+
+    // Cần lấy paymentId từ loan
+    // Giả sử loan có trường paymentId hoặc cần gọi API để lấy
+    this.loanPaymentService.getPaymentByLoanId(loan.id).subscribe({
+      next: (payment: any) => {
+        // Kiểm tra nếu không phải thanh toán tiền mặt
+        if (payment.paymentMethod !== 'CASH') {
+          alert('Chỉ có thể xác nhận thanh toán tiền mặt!');
+          return;
+        }
+
+        // Kiểm tra nếu đã được xác nhận
+        if (payment.paymentStatus === 'CONFIRMED') {
+          alert('Thanh toán này đã được xác nhận trước đó!');
+          return;
+        }
+
+        this.loanPaymentService.confirmCashPayment(payment.id, confirmedBy).subscribe({
+          next: () => {
+            alert('Đã xác nhận thanh toán thành công!');
+            this.loadLoans();
+          },
+          error: (err) => {
+            console.error('Error confirming payment:', err);
+            alert('Lỗi xác nhận thanh toán: ' + (err.error?.message || err.message));
+          },
+        });
+      },
+      error: (err) => {
+        console.error('Error getting payment:', err);
+        alert('Lỗi lấy thông tin thanh toán: ' + (err.error?.message || err.message));
+      },
+    });
   }
 }

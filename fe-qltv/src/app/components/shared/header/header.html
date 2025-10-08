@@ -122,14 +122,13 @@
         >
           <a
             (click)="goToProfile()"
-            class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 text-sm"
+            class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 text-sm cursor-pointer"
             tabindex="0"
             role="button"
             >Hồ sơ cá nhân</a
           >
           <a
-            routerLink="/library/profile"
-            [queryParams]="{ tab: 'settings' }"
+            routerLink="/library/settings"
             (click)="closeUserMenu()"
             class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 text-sm"
             >Cài đặt</a

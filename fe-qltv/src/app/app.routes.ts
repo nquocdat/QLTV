@@ -3,6 +3,7 @@ import { Login } from './components/auth/login/login';
 import { Register } from './components/auth/register/register';
 import { Home } from './components/library/home/home';
 import { Profile } from './components/library/profile/profile';
+import { PersonalProfileComponent } from './components/library/profile/personal-profile.component';
 import { MainLayout } from './components/layout/main-layout/main-layout';
 import { AdminLayout } from './components/layout/admin-layout/admin-layout';
 import { Dashboard } from './components/admin/dashboard/dashboard';
@@ -13,11 +14,16 @@ import { CategoryManagement } from './components/admin/category-management/categ
 import { AuthorManagement } from './components/admin/author-management/author-management';
 import { PublisherManagementComponent } from './components/admin/publisher-management/publisher-management';
 import { Reports } from './components/admin/reports/reports';
+import { ReviewManagement } from './components/admin/review-management/review-management';
 import { MembershipManagement } from './components/admin/membership-management/membership-management';
 import { AnalyticsDashboard } from './components/admin/analytics-dashboard/analytics-dashboard';
 import { AuthGuard } from './guards/auth.guard';
 import { RoleGuard } from './guards/role.guard';
 import { BooksComponent } from './components/library/books/books.component';
+import { PaymentManagementComponent } from './components/admin/payment-management/payment-management.component';
+import { PendingPaymentsComponent } from './components/admin/pending-payments/pending-payments.component';
+import { PaymentResultComponent } from './components/library/payment-result/payment-result.component';
+import { AdminCopiesComponent } from './components/admin/admin-copies/admin-copies.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/library/home', pathMatch: 'full' },
@@ -32,6 +38,8 @@ export const routes: Routes = [
       { path: 'home', component: Home },
       { path: 'books', component: BooksComponent },
       { path: 'profile', component: Profile, canActivate: [AuthGuard] },
+      { path: 'settings', component: PersonalProfileComponent, canActivate: [AuthGuard] },
+      { path: 'payment-result', component: PaymentResultComponent, canActivate: [AuthGuard] },
       { path: '', redirectTo: 'home', pathMatch: 'full' },
     ],
   },
@@ -53,6 +61,10 @@ export const routes: Routes = [
       { path: 'memberships', component: MembershipManagement },
       { path: 'analytics', component: AnalyticsDashboard },
       { path: 'reports', component: Reports },
+      { path: 'reviews', component: ReviewManagement },
+      { path: 'payments', component: PaymentManagementComponent },
+      { path: 'pending-payments', component: PendingPaymentsComponent },
+      { path: 'copies', component: AdminCopiesComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
@@ -73,6 +85,8 @@ export const routes: Routes = [
       { path: 'memberships', component: MembershipManagement },
       { path: 'analytics', component: AnalyticsDashboard },
       { path: 'reports', component: Reports },
+      { path: 'pending-payments', component: PendingPaymentsComponent },
+      { path: 'copies', component: AdminCopiesComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

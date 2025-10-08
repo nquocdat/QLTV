@@ -1,5 +1,6 @@
 package com.example.be_qltv.service;
 
+import com.example.be_qltv.dto.ChangePasswordRequest;
 import com.example.be_qltv.dto.PatronDTO;
 import com.example.be_qltv.dto.RegisterRequest;
 import com.example.be_qltv.entity.Patron;
@@ -69,8 +70,15 @@ public class PatronService {
         Patron patron = new Patron();
         patron.setName(patronDTO.getName());
         patron.setEmail(patronDTO.getEmail());
-        // For admin-created users, generate a default password
-        patron.setPassword(passwordEncoder.encode("defaultPassword123"));
+        
+        // For admin-created users, use provided password or default
+        String password = (patronDTO.getPassword() != null && !patronDTO.getPassword().isEmpty()) 
+            ? patronDTO.getPassword() 
+            : "password"; // Default password: "password"
+        patron.setPassword(passwordEncoder.encode(password));
+        
+        System.out.println("Creating patron: " + patronDTO.getEmail() + " with password: " + password);
+        
         patron.setAddress(patronDTO.getAddress());
         patron.setPhoneNumber(patronDTO.getPhoneNumber());
         
@@ -190,6 +198,30 @@ public class PatronService {
             return true;
         }
         return false;
+    }
+
+    public boolean changePassword(Long id, ChangePasswordRequest request) {
+        // Validate that new password matches confirm password
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("New password and confirm password do not match!");
+        }
+
+        Optional<Patron> patronOpt = patronRepository.findById(id);
+        if (patronOpt.isEmpty()) {
+            return false;
+        }
+
+        Patron patron = patronOpt.get();
+        
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), patron.getPassword())) {
+            throw new RuntimeException("Current password is incorrect!");
+        }
+
+        // Update password
+        patron.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        patronRepository.save(patron);
+        return true;
     }
 
     // Helper methods

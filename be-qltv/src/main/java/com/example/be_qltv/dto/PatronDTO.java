@@ -19,6 +19,9 @@ public class PatronDTO {
     @Email(message = "Invalid email format")
     private String email;
     
+    // Password field (optional for admin-created users)
+    private String password;
+    
     private String role;
     private Boolean isActive;
 
@@ -71,6 +74,14 @@ public class PatronDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getRole() {

@@ -137,12 +137,16 @@ INSERT INTO publishers (name, address, phone, email, website, country, establish
 ('Apress', '233 Spring Street, New York, NY', '+1-212-460-1500', 'info@apress.com', 'https://apress.com', 'USA', 1999, 'Technical publisher'),
 ('Manning Publications', '20 Baldwin Road, Shelter Island, NY', '+1-203-626-2002', 'support@manning.com', 'https://manning.com', 'USA', 1994, 'Computer book publisher');
 
--- Thêm user memberships cho các user hiện có
+-- Thêm user memberships cho TẤT CẢ users (bao gồm admin, librarian và users)
+-- Patron IDs: 1=Admin, 2=Test User, 3=Librarian, 4-7=Regular Users
 INSERT INTO user_memberships (patron_id, tier_id, current_points, total_loans, violation_count, join_date) VALUES
-(4, 2, 150, 25, 1, '2024-01-15'), -- John Doe - VIP
-(5, 1, 50, 8, 0, '2024-03-10'),  -- Jane Smith - Basic
-(6, 3, 350, 55, 0, '2023-12-01'), -- Bob Wilson - Premium
-(7, 1, 30, 5, 2, '2024-05-20');   -- Alice Brown - Basic
+(1, 3, 500, 100, 0, '2024-01-01'), -- Admin User - Premium
+(2, 3, 400, 80, 0, '2024-01-01'),  -- Test User - Premium  
+(3, 2, 200, 30, 0, '2024-01-01'),  -- Librarian One - VIP
+(4, 2, 150, 25, 1, '2024-01-15'),  -- John Doe - VIP
+(5, 1, 50, 8, 0, '2024-03-10'),    -- Jane Smith - Basic
+(6, 3, 350, 55, 0, '2023-12-01'),  -- Bob Wilson - Premium
+(7, 1, 30, 5, 2, '2024-05-20');    -- Alice Brown - Basic
 
 -- Thêm user ratings
 INSERT INTO user_ratings (patron_id, rating, score, total_loans, on_time_returns, late_returns, violation_points) VALUES

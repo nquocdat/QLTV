@@ -17,15 +17,27 @@ export interface UserUpdateRequest extends UserCreateRequest {
   id: number;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  message?: string;
+  error?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
   // Lấy thông tin user đang đăng nhập
   getCurrentUser(): Observable<Patron | null> {
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-      return this.getUserById(Number(userId));
+    const userJson = sessionStorage.getItem('auth-user');
+    if (userJson) {
+      const currentUser = JSON.parse(userJson);
+      return this.getUserById(Number(currentUser.id));
     }
     return new Observable<Patron | null>((observer) => {
       observer.next(null);
@@ -79,5 +91,15 @@ export class UserService {
 
   getActiveUsers(): Observable<Patron[]> {
     return this.http.get<Patron[]>(`${this.apiUrl}/active`);
+  }
+
+  changePassword(
+    userId: number,
+    request: ChangePasswordRequest
+  ): Observable<ChangePasswordResponse> {
+    return this.http.put<ChangePasswordResponse>(
+      `${this.apiUrl}/${userId}/change-password`,
+      request
+    );
   }
 }

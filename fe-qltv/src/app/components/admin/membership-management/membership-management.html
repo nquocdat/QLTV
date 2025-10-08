@@ -195,7 +195,7 @@
                       Chi tiết
                     </button>
                     <button
-                      *ngIf="membership.tierId < 3"
+                      *ngIf="canUpgradeMembership(membership)"
                       (click)="upgradeMembership(membership.userId, membership.tierId + 1)"
                       class="text-green-600 hover:text-green-700 text-sm font-medium"
                     >

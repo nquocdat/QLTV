@@ -72,6 +72,11 @@ public class WebSecurityConfig {
                     .requestMatchers("POST", "/api/books/**").hasRole("ADMIN")
                     .requestMatchers("PUT", "/api/books/**").hasRole("ADMIN")
                     .requestMatchers("DELETE", "/api/books/**").hasRole("ADMIN")
+                    // Book Copies endpoints
+                    .requestMatchers("GET", "/api/book-copies/**").permitAll()
+                    .requestMatchers("POST", "/api/book-copies/**").hasAnyRole("ADMIN", "LIBRARIAN")
+                    .requestMatchers("PUT", "/api/book-copies/**").hasAnyRole("ADMIN", "LIBRARIAN")
+                    .requestMatchers("DELETE", "/api/book-copies/**").hasAnyRole("ADMIN", "LIBRARIAN")
                     .requestMatchers("/api/categories/**").permitAll()
                     .requestMatchers("/api/patrons/register").permitAll()
                     .anyRequest().authenticated()

@@ -5,15 +5,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.be_qltv.service.BookService;
-import com.example.be_qltv.service.LoanService;
-import com.example.be_qltv.service.PatronService;
-import com.example.be_qltv.service.CategoryService;
-import com.example.be_qltv.service.AuthorService;
-import com.example.be_qltv.service.PublisherService;
+import com.example.be_qltv.service.ReportService;
+import com.example.be_qltv.service.AnalyticsService;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -22,60 +20,40 @@ import java.util.Map;
 public class DashboardController {
     
     @Autowired
-    private BookService bookService;
+    private ReportService reportService;
     
     @Autowired
-    private LoanService loanService;
-    
-    @Autowired
-    private PatronService patronService;
-    
-    @Autowired
-    private CategoryService categoryService;
-    
-    @Autowired
-    private AuthorService authorService;
-    
-    @Autowired
-    private PublisherService publisherService;
+    private AnalyticsService analyticsService;
     
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getDashboardStats() {
-        Map<String, Object> stats = new HashMap<>();
-        
         try {
-            // Get current counts using available methods
-            long totalBooks = bookService.getAllBooks().size();
-            long totalUsers = patronService.getAllPatrons().size();
-            long activeLoans = loanService.getAllLoans().stream()
-                    .filter(loan -> loan.getStatus().equals("ACTIVE"))
-                    .count();
-            long overdueLoans = loanService.getAllLoans().stream()
-                    .filter(loan -> loan.getStatus().equals("OVERDUE"))
-                    .count();
-            long totalCategories = categoryService.getAllCategories().size();
-            long totalAuthors = authorService.getAllAuthors().size();
-            long totalPublishers = publisherService.getAllPublishers().size();
+            // Get statistics from ReportService
+            Map<String, Object> reportStats = reportService.getDashboardStatistics();
             
-            // Get monthly statistics (simplified for now)
-            long newBooksThisMonth = 0; // TODO: Implement proper counting
-            long newUsersThisMonth = 0; // TODO: Implement proper counting
+            // Map to frontend DashboardStats format
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalBooks", reportStats.get("totalBooks"));
+            stats.put("totalUsers", reportStats.get("totalUsers"));
+            stats.put("activeLoans", reportStats.get("activeLoans"));
+            stats.put("overdueLoans", reportStats.get("overdueLoans"));
+            stats.put("revenue", reportStats.get("totalRevenue"));
+            stats.put("totalCategories", reportStats.get("totalCategories"));
+            stats.put("totalAuthors", reportStats.get("totalAuthors"));
             
-            stats.put("totalBooks", totalBooks);
-            stats.put("totalUsers", totalUsers);
-            stats.put("activeLoans", activeLoans);
-            stats.put("overdueLoans", overdueLoans);
-            stats.put("revenue", 0); // TODO: Calculate actual revenue if applicable
-            stats.put("newBooksThisMonth", newBooksThisMonth);
-            stats.put("newUsersThisMonth", newUsersThisMonth);
-            stats.put("totalCategories", totalCategories);
-            stats.put("totalAuthors", totalAuthors);
-            stats.put("totalPublishers", totalPublishers);
+            // Monthly statistics (placeholder - can be enhanced)
+            stats.put("newBooksThisMonth", 0);
+            stats.put("newUsersThisMonth", 0);
+            stats.put("totalPublishers", 0);
             
             return ResponseEntity.ok(stats);
             
         } catch (Exception e) {
-            // Return default stats if services are not available
+            System.err.println("Error in getDashboardStats: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Return default stats on error
+            Map<String, Object> stats = new HashMap<>();
             stats.put("totalBooks", 0);
             stats.put("totalUsers", 0);
             stats.put("activeLoans", 0);
@@ -92,22 +70,108 @@ public class DashboardController {
     }
     
     @GetMapping("/popular-books")
-    public ResponseEntity<Object> getPopularBooks() {
+    public ResponseEntity<List<Map<String, Object>>> getPopularBooks(
+            @RequestParam(defaultValue = "5") int limit) {
         try {
-            // TODO: Implement actual popular books logic based on loan frequency
-            return ResponseEntity.ok("[]"); // Return empty array for now
+            List<Map<String, Object>> popularBooks = analyticsService.getTopBorrowedBooks(limit);
+            return ResponseEntity.ok(popularBooks);
         } catch (Exception e) {
-            return ResponseEntity.ok("[]");
+            System.err.println("Error in getPopularBooks: " + e.getMessage());
+            return ResponseEntity.ok(List.of());
         }
     }
     
     @GetMapping("/recent-activities")
-    public ResponseEntity<Object> getRecentActivities() {
+    public ResponseEntity<List<Map<String, Object>>> getRecentActivities(
+            @RequestParam(defaultValue = "10") int limit) {
         try {
-            // TODO: Implement actual recent activities logic
-            return ResponseEntity.ok("[]"); // Return empty array for now
+            // Return empty for now - can be implemented later with activity tracking
+            return ResponseEntity.ok(List.of());
         } catch (Exception e) {
-            return ResponseEntity.ok("[]");
+            return ResponseEntity.ok(List.of());
+        }
+    }
+
+    /**
+     * Get monthly loan statistics for chart
+     * Returns data for line chart showing loan trends
+     * @param months Number of months to include (default: 6)
+     */
+    @GetMapping("/monthly-loans")
+    public ResponseEntity<Map<String, Object>> getMonthlyLoanStats(
+            @RequestParam(defaultValue = "6") int months) {
+        
+        try {
+            List<Map<String, Object>> loanTrends = analyticsService.getLoanTrends(months);
+            
+            // Transform data for Chart.js format
+            List<String> labels = new ArrayList<>();
+            List<Integer> values = new ArrayList<>();
+            
+            for (Map<String, Object> trend : loanTrends) {
+                // Extract period and totalLoans from AnalyticsService format
+                String period = (String) trend.get("period");
+                Integer totalLoans = (Integer) trend.get("totalLoans");
+                
+                if (period != null) {
+                    labels.add(period);
+                    values.add(totalLoans != null ? totalLoans : 0);
+                }
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("labels", labels);
+            response.put("values", values);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error in getMonthlyLoanStats: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("labels", List.of());
+            response.put("values", List.of());
+            return ResponseEntity.ok(response);
+        }
+    }
+
+    /**
+     * Get category distribution for pie chart
+     * Returns book count by category
+     */
+    @GetMapping("/category-distribution")
+    public ResponseEntity<Map<String, Object>> getCategoryDistribution() {
+        try {
+            List<Map<String, Object>> distribution = 
+                analyticsService.getCategoryDistribution();
+            
+            // Transform data for Chart.js format
+            List<String> labels = new ArrayList<>();
+            List<Long> values = new ArrayList<>();
+            
+            for (Map<String, Object> item : distribution) {
+                String categoryName = (String) item.get("categoryName");
+                Long bookCount = (Long) item.get("bookCount");
+                
+                if (categoryName != null && bookCount != null) {
+                    labels.add(categoryName);
+                    values.add(bookCount);
+                }
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("labels", labels);
+            response.put("values", values);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error in getCategoryDistribution: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("labels", List.of());
+            response.put("values", List.of());
+            return ResponseEntity.ok(response);
         }
     }
 }

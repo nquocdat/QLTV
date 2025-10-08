@@ -135,6 +135,60 @@ export class BookService {
     return this.http.get<Book[]>(`${this.apiUrl}/author/${author}`);
   }
 
+  // Get books by category ID
+  getBooksByCategory(
+    categoryId: number,
+    pageRequest?: PageRequest
+  ): Observable<PageResponse<Book>> {
+    let params = new HttpParams();
+
+    if (pageRequest) {
+      params = params
+        .set('page', pageRequest.page.toString())
+        .set('size', pageRequest.size.toString());
+
+      if (pageRequest.sortBy) {
+        params = params.set('sortBy', pageRequest.sortBy);
+      }
+      if (pageRequest.sortDir) {
+        params = params.set('sortDir', pageRequest.sortDir);
+      }
+    } else {
+      params = params.set('page', '0').set('size', '100');
+    }
+
+    return this.http.get<PageResponse<Book>>(`${this.apiUrl}/by-category/${categoryId}`, {
+      params,
+    });
+  }
+
+  // Get books by publisher ID
+  getBooksByPublisher(
+    publisherId: number,
+    pageRequest?: PageRequest
+  ): Observable<PageResponse<Book>> {
+    let params = new HttpParams();
+
+    if (pageRequest) {
+      params = params
+        .set('page', pageRequest.page.toString())
+        .set('size', pageRequest.size.toString());
+
+      if (pageRequest.sortBy) {
+        params = params.set('sortBy', pageRequest.sortBy);
+      }
+      if (pageRequest.sortDir) {
+        params = params.set('sortDir', pageRequest.sortDir);
+      }
+    } else {
+      params = params.set('page', '0').set('size', '100');
+    }
+
+    return this.http.get<PageResponse<Book>>(`${this.apiUrl}/by-publisher/${publisherId}`, {
+      params,
+    });
+  }
+
   // Autocomplete suggestions
   getAuthorSuggestions(query: string): Observable<string[]> {
     if (!query || query.length < 2) {

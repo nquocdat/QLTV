@@ -1,0 +1,129 @@
+<div class="book-copies-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-8">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+    <p class="mt-2 text-gray-600">Đang tải danh sách bản sao...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+    <p class="text-red-800">{{ error }}</p>
+  </div>
+
+  <!-- Stats Summary -->
+  <div
+    *ngIf="!isLoading && !error && copies.length > 0"
+    class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+  >
+    <div class="bg-blue-50 rounded-lg p-4">
+      <div class="text-2xl font-bold text-blue-900">{{ totalCopies }}</div>
+      <div class="text-sm text-blue-600">Tổng số bản</div>
+    </div>
+    <div class="bg-green-50 rounded-lg p-4">
+      <div class="text-2xl font-bold text-green-900">{{ availableCount }}</div>
+      <div class="text-sm text-green-600">Có sẵn</div>
+    </div>
+    <div class="bg-yellow-50 rounded-lg p-4">
+      <div class="text-2xl font-bold text-yellow-900">{{ borrowedCount }}</div>
+      <div class="text-sm text-yellow-600">Đang mượn</div>
+    </div>
+    <div class="bg-purple-50 rounded-lg p-4">
+      <div class="text-2xl font-bold text-purple-900">{{ reservedCount }}</div>
+      <div class="text-sm text-purple-600">Đã đặt</div>
+    </div>
+  </div>
+
+  <!-- Copies List -->
+  <div *ngIf="!isLoading && !error" class="space-y-3">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-gray-900">Danh sách bản sao ({{ copies.length }})</h3>
+    </div>
+
+    <!-- No copies -->
+    <div *ngIf="copies.length === 0" class="text-center py-8 bg-gray-50 rounded-lg">
+      <p class="text-gray-600">📚 Chưa có bản sao nào cho sách này.</p>
+    </div>
+
+    <!-- Copies Grid -->
+    <div class="grid grid-cols-1 gap-3">
+      <div
+        *ngFor="let copy of copies"
+        class="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
+      >
+        <div class="flex items-start justify-between">
+          <!-- Copy Info -->
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg font-semibold text-gray-900">
+                {{ getStatusIcon(copy.status) }} Bản sao #{{ copy.copyNumber }}
+              </span>
+              <span
+                class="px-2 py-1 rounded text-xs font-semibold"
+                [ngClass]="getStatusClass(copy.status)"
+              >
+                {{ copy.statusDisplay }}
+              </span>
+              <span
+                class="px-2 py-1 rounded text-xs font-medium"
+                [ngClass]="getConditionClass(copy.conditionStatus)"
+              >
+                {{ copy.conditionStatusDisplay }}
+              </span>
+            </div>
+
+            <!-- Barcode -->
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-sm text-gray-500">Mã barcode:</span>
+              <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-900">
+                {{ copy.barcode }}
+              </code>
+            </div>
+
+            <!-- Location -->
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm text-gray-500">📍 Vị trí:</span>
+              <span class="text-sm text-gray-900 font-medium">{{ copy.location }}</span>
+            </div>
+
+            <!-- Price (if available) -->
+            <div *ngIf="copy.price" class="flex items-center gap-2 mb-1">
+              <span class="text-sm text-gray-500">💰 Giá:</span>
+              <span class="text-sm text-gray-900">{{ copy.price | number : '1.0-0' }} VND</span>
+            </div>
+
+            <!-- Acquisition Date -->
+            <div *ngIf="copy.acquisitionDate" class="flex items-center gap-2 mb-1">
+              <span class="text-sm text-gray-500">📅 Ngày nhập:</span>
+              <span class="text-sm text-gray-900">{{
+                copy.acquisitionDate | date : 'dd/MM/yyyy'
+              }}</span>
+            </div>
+
+            <!-- Notes -->
+            <div *ngIf="copy.notes" class="mt-2 text-sm text-gray-600 italic">
+              💬 {{ copy.notes }}
+            </div>
+          </div>
+
+          <!-- Actions (Admin/Librarian only) -->
+          <div *ngIf="showActions" class="flex gap-2 ml-4">
+            <button
+              (click)="onEditCopy(copy)"
+              class="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm"
+            >
+              ✏️ Sửa
+            </button>
+            <button
+              (click)="onDeleteCopy(copy)"
+              [disabled]="copy.status === 'BORROWED'"
+              class="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              🗑️ Xóa
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

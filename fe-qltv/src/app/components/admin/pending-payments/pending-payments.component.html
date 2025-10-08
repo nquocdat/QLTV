@@ -1,0 +1,179 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h2 class="text-3xl font-bold text-gray-900">💵 Thanh toán tiền mặt</h2>
+      <p class="text-gray-600 mt-1">Danh sách thanh toán đang chờ xác nhận</p>
+    </div>
+    <button
+      (click)="loadPendingPayments()"
+      class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+        />
+      </svg>
+      Làm mới
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div
+    *ngIf="errorMessage"
+    class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+  >
+    ❌ {{ errorMessage }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-12">
+    <div
+      class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"
+    ></div>
+    <p class="text-gray-600">Đang tải dữ liệu...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div
+    *ngIf="!loading && pendingPayments.length === 0 && !errorMessage"
+    class="text-center py-12 bg-white rounded-lg shadow"
+  >
+    <div class="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
+      <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+    </div>
+    <p class="text-xl font-semibold text-gray-900 mb-2">Không có thanh toán chờ xác nhận</p>
+    <p class="text-gray-600">Tất cả thanh toán đã được xử lý</p>
+  </div>
+
+  <!-- Payments Table -->
+  <div
+    *ngIf="!loading && pendingPayments.length > 0"
+    class="bg-white rounded-lg shadow overflow-hidden"
+  >
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Mã GD
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Người mượn
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Sách
+            </th>
+            <th
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Số tiền
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Ngày tạo
+            </th>
+            <th
+              class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Thao tác
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let payment of pendingPayments" class="hover:bg-gray-50 transition-colors">
+            <!-- Payment ID -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-semibold text-gray-900">#{{ payment.id }}</div>
+              <div class="text-xs text-gray-500">Loan: #{{ payment.loanId }}</div>
+            </td>
+
+            <!-- Patron Info -->
+            <td class="px-6 py-4">
+              <div class="text-sm font-medium text-gray-900">{{ payment.patronName }}</div>
+              <div class="text-sm text-gray-500">{{ payment.patronEmail }}</div>
+            </td>
+
+            <!-- Book Info -->
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-900 max-w-xs truncate" [title]="payment.bookTitle">
+                {{ payment.bookTitle }}
+              </div>
+            </td>
+
+            <!-- Amount -->
+            <td class="px-6 py-4 whitespace-nowrap text-right">
+              <div class="text-sm font-bold text-indigo-600">
+                {{ formatCurrency(payment.amount) }}
+              </div>
+            </td>
+
+            <!-- Created Date -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ formatDate(payment.createdDate) }}</div>
+              <div class="text-xs text-gray-500">
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800"
+                >
+                  Chờ xác nhận
+                </span>
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <button
+                (click)="confirmPayment(payment)"
+                class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                Xác nhận
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Summary -->
+    <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+      <div class="flex justify-between items-center">
+        <div class="text-sm text-gray-600">
+          Tổng số:
+          <span class="font-semibold text-gray-900">{{ pendingPayments.length }}</span> thanh toán
+          chờ xác nhận
+        </div>
+        <div class="text-sm font-semibold text-gray-900">
+          Tổng tiền:
+          <span class="text-indigo-600">
+            {{ getTotalAmount() }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

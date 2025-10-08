@@ -3,6 +3,7 @@ package com.example.be_qltv.dto;
 import com.example.be_qltv.entity.Book;
 import com.example.be_qltv.enums.BookStatus;
 import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,6 +49,10 @@ public class BookDTO {
 
     private Integer pages;
     private Long borrowCount;
+
+    private Integer fee; // Giá mượn sách
+    
+    private LocalDateTime createdDate; // Ngày tạo sách
 
     // Getters and Setters
     public String getAuthor() {
@@ -200,6 +205,21 @@ public class BookDTO {
 
     public void setBorrowCount(Long borrowCount) {
         this.borrowCount = borrowCount;
+    }
+
+    public Integer getFee() {
+        return fee;
+    }
+    public void setFee(Integer fee) {
+        this.fee = fee;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
     }
 
     @Override

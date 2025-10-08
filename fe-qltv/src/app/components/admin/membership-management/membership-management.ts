@@ -35,40 +35,6 @@ export class MembershipManagement implements OnInit {
     userIds: [] as number[],
   };
 
-  // Mock user data
-  mockUsers = [
-    {
-      id: 1,
-      name: 'Nguyễn Văn A',
-      email: 'nguyenvana@email.com',
-      joinDate: '2024-01-15',
-      totalLoans: 25,
-      currentLoans: 2,
-      violations: 1,
-      avatar: null,
-    },
-    {
-      id: 2,
-      name: 'Trần Thị B',
-      email: 'tranthib@email.com',
-      joinDate: '2024-02-10',
-      totalLoans: 38,
-      currentLoans: 3,
-      violations: 0,
-      avatar: null,
-    },
-    {
-      id: 3,
-      name: 'Lê Văn C',
-      email: 'levanc@email.com',
-      joinDate: '2024-03-05',
-      totalLoans: 15,
-      currentLoans: 1,
-      violations: 3,
-      avatar: null,
-    },
-  ];
-
   constructor(private advancedFeaturesService: AdvancedFeaturesService) {}
 
   ngOnInit(): void {
@@ -82,28 +48,76 @@ export class MembershipManagement implements OnInit {
       next: (tiers) => {
         this.membershipTiers = tiers;
       },
+      error: (error) => {
+        console.error('Error loading membership tiers:', error);
+        this.loading = false;
+      },
     });
   }
 
   private loadUserMemberships(): void {
-    // Load membership data for all users
-    this.mockUsers.forEach((user) => {
-      this.advancedFeaturesService.getUserMembership(user.id).subscribe({
-        next: (membership) => {
-          this.advancedFeaturesService.getUserRating(user.id).subscribe({
+    // Load all user memberships directly from backend API
+    this.advancedFeaturesService.getAllUserMemberships().subscribe({
+      next: (memberships) => {
+        // Map memberships with user rating
+        memberships.forEach((membership) => {
+          this.advancedFeaturesService.getUserRating(membership.userId).subscribe({
             next: (rating) => {
               this.userMemberships.push({
                 ...membership,
-                user,
+                user: {
+                  id: membership.userId,
+                  name: membership.userName || 'Unknown',
+                  email: membership.userEmail || 'No email',
+                  joinDate: membership.joinDate,
+                  totalLoans: membership.totalLoans,
+                  currentLoans: 0,
+                  violations: membership.violationCount || 0,
+                  avatar: null,
+                },
                 rating,
               });
-              if (this.userMemberships.length === this.mockUsers.length) {
+
+              if (this.userMemberships.length === memberships.length) {
+                this.loading = false;
+              }
+            },
+            error: () => {
+              // If rating fails, still add membership without rating
+              this.userMemberships.push({
+                ...membership,
+                user: {
+                  id: membership.userId,
+                  name: membership.userName || 'Unknown',
+                  email: membership.userEmail || 'No email',
+                  joinDate: membership.joinDate,
+                  totalLoans: membership.totalLoans,
+                  currentLoans: 0,
+                  violations: membership.violationCount || 0,
+                  avatar: null,
+                },
+                rating: {
+                  userId: membership.userId,
+                  rating: 'AVERAGE',
+                  score: 70,
+                  violations: [],
+                  totalLoans: membership.totalLoans,
+                  onTimeReturns: membership.totalLoans,
+                  lateReturns: 0,
+                },
+              });
+
+              if (this.userMemberships.length === memberships.length) {
                 this.loading = false;
               }
             },
           });
-        },
-      });
+        });
+      },
+      error: (error) => {
+        console.error('Error loading user memberships:', error);
+        this.loading = false;
+      },
     });
   }
 
@@ -259,5 +273,23 @@ export class MembershipManagement implements OnInit {
     const pointProgress = Math.min(100, (membership.currentPoints / requiredPoints) * 100);
 
     return Math.min(loanProgress, pointProgress);
+  }
+
+  canUpgradeMembership(membership: UserMembership): boolean {
+    // Check if already at max tier
+    const nextTierIndex = this.membershipTiers.findIndex((t) => t.id === membership.tierId) + 1;
+    if (nextTierIndex >= this.membershipTiers.length) return false;
+
+    const nextTier = this.membershipTiers[nextTierIndex];
+    if (!nextTier) return false;
+
+    // Check all requirements
+    const meetsLoanRequirement = membership.totalLoans >= (nextTier.requirements.minLoans || 0);
+    const meetsPointRequirement =
+      membership.currentPoints >= (nextTier.requirements.minPoints || 0);
+    const meetsViolationRequirement =
+      (membership.violationCount || 0) <= (nextTier.requirements.maxViolations || 999);
+
+    return meetsLoanRequirement && meetsPointRequirement && meetsViolationRequirement;
   }
 }

@@ -1,0 +1,84 @@
+<div class="payment-management">
+  <h2>Quản lý thanh toán</h2>
+  <div class="filters">
+    <label
+      >Phương thức:
+      <select [(ngModel)]="filterMethod">
+        <option value="">Tất cả</option>
+        <option value="VNPAY">VNPay</option>
+        <option value="CASH">Tiền mặt</option>
+      </select>
+    </label>
+    <label
+      >Trạng thái:
+      <select [(ngModel)]="filterStatus">
+        <option value="">Tất cả</option>
+        <option value="PENDING">Chờ xác nhận</option>
+        <option value="CONFIRMED">Đã xác nhận</option>
+        <option value="FAILED">Thất bại</option>
+        <option value="REFUNDED">Đã hoàn tiền</option>
+      </select>
+    </label>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Mã giao dịch</th>
+        <th>Người mượn</th>
+        <th>Sách</th>
+        <th>Số tiền</th>
+        <th>Phương thức</th>
+        <th>Trạng thái</th>
+        <th>Ngày tạo</th>
+        <th>Ngày thanh toán</th>
+        <th>Mô tả</th>
+        <th>Xác nhận tiền mặt</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let payment of filteredPayments">
+        <td>{{ payment.id }}</td>
+        <td>
+          <div>{{ payment.patronName }}</div>
+          <small>{{ payment.patronEmail }}</small>
+        </td>
+        <td>{{ payment.bookTitle || 'N/A' }}</td>
+        <td>{{ payment.amount | number }} VND</td>
+        <td>{{ payment.paymentMethod }}</td>
+        <td>{{ payment.paymentStatus || payment.status }}</td>
+        <td>{{ payment.createdDate | date : 'short' }}</td>
+        <td>
+          {{
+            payment.confirmedDate || payment.paidDate
+              ? (payment.confirmedDate || payment.paidDate | date : 'short')
+              : '-'
+          }}
+        </td>
+        <td>{{ payment.description }}</td>
+        <td>
+          <button
+            *ngIf="
+              payment.paymentMethod === 'CASH' &&
+              payment.paymentStatus !== 'CONFIRMED' &&
+              payment.status !== 'SUCCESS'
+            "
+            (click)="confirmCash(payment)"
+          >
+            Xác nhận
+          </button>
+          <span
+            *ngIf="
+              payment.paymentMethod === 'CASH' &&
+              (payment.paymentStatus === 'CONFIRMED' || payment.status === 'SUCCESS')
+            "
+            >Đã xác nhận</span
+          >
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="stats">
+    <p>Tổng số giao dịch: {{ filteredPayments.length }}</p>
+    <p>Tổng tiền đã thanh toán: {{ totalPaid | number }} VND</p>
+  </div>
+</div>

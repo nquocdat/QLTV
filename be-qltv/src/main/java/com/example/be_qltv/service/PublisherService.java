@@ -146,6 +146,7 @@ public class PublisherService {
         dto.setCountry(publisher.getCountry());
         dto.setEstablishedYear(publisher.getEstablishedYear());
         dto.setDescription(publisher.getDescription());
+        dto.setCreatedDate(publisher.getCreatedDate());
         return dto;
     }
     

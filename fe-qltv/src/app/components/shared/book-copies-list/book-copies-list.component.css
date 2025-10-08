@@ -1,0 +1,29 @@
+.book-copies-container {
+  width: 100%;
+}
+
+/* Smooth transitions */
+.border {
+  transition: all 0.2s ease;
+}
+
+/* Copy card hover effect */
+.hover\:shadow-md:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Barcode styling */
+code {
+  letter-spacing: 0.05em;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

@@ -38,4 +38,20 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     
     @Query("SELECT r FROM Review r WHERE r.book.id = :bookId ORDER BY r.rating DESC, r.createdDate DESC")
     List<Review> findByBookIdOrderByRatingDesc(@Param("bookId") Long bookId);
+    
+    // New methods for approval system
+    List<Review> findByApproved(Boolean approved);
+    
+    Page<Review> findByApproved(Boolean approved, Pageable pageable);
+    
+    @Query("SELECT r FROM Review r WHERE r.book.id = :bookId AND r.approved = true")
+    List<Review> findApprovedByBookId(@Param("bookId") Long bookId);
+    
+    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.book.id = :bookId AND r.approved = true")
+    Double getApprovedAverageRatingForBook(@Param("bookId") Long bookId);
+    
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.book.id = :bookId AND r.approved = true")
+    Long getApprovedReviewCountForBook(@Param("bookId") Long bookId);
+    
+    Optional<Review> findByLoanId(Long loanId);
 }

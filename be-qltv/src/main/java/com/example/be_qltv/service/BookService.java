@@ -464,6 +464,8 @@ public class BookService {
         dto.setAvailableCopies(book.getAvailableCopies());
         dto.setDescription(book.getDescription());
         dto.setCoverImage(book.getImageUrl());
+        dto.setFee(book.getFee());
+        dto.setCreatedDate(book.getCreatedDate());
         
         return dto;
     }
@@ -485,6 +487,7 @@ public class BookService {
         book.setDescription(dto.getDescription());
         book.setImageUrl(dto.getCoverImage());
         book.setStatus(dto.getStatus());
+        book.setFee(dto.getFee());
         
         return book;
     }
@@ -532,6 +535,9 @@ public class BookService {
         // Note: availableCopies should be updated carefully to maintain loan integrity
         if (dto.getAvailableCopies() != null) {
             book.setAvailableCopies(dto.getAvailableCopies());
+        }
+        if (dto.getFee() != null) {
+            book.setFee(dto.getFee());
         }
     }
 }

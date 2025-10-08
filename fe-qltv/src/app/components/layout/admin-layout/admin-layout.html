@@ -14,7 +14,9 @@
             />
           </svg>
         </div>
-        <span class="ml-3 text-xl font-bold text-gray-900">QLTV Admin</span>
+        <span class="ml-3 text-xl font-bold text-gray-900">
+          {{ isAdmin() ? 'QLTV Admin' : 'QLTV Thủ thư' }}
+        </span>
       </div>
 
       <!-- Navigation -->
@@ -35,7 +37,9 @@
           Tổng quan
         </a>
 
+        <!-- Users Management (Admin Only) -->
         <a
+          *ngIf="isAdmin()"
           routerLink="/admin/users"
           routerLinkActive="bg-indigo-50 text-indigo-600 border-r-2 border-indigo-600"
           class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
@@ -52,7 +56,7 @@
         </a>
 
         <a
-          routerLink="/admin/books"
+          [routerLink]="getBasePath() + '/books'"
           routerLinkActive="bg-indigo-50 text-indigo-600 border-r-2 border-indigo-600"
           class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
         >
@@ -68,7 +72,23 @@
         </a>
 
         <a
-          routerLink="/admin/loans"
+          [routerLink]="getBasePath() + '/copies'"
+          routerLinkActive="bg-indigo-50 text-indigo-600 border-r-2 border-indigo-600"
+          class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+          Quản lý bản sao
+        </a>
+
+        <a
+          [routerLink]="getBasePath() + '/loans'"
           routerLinkActive="bg-indigo-50 text-indigo-600 border-r-2 border-indigo-600"
           class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
         >
@@ -84,7 +104,7 @@
         </a>
 
         <a
-          routerLink="/admin/categories"
+          [routerLink]="getBasePath() + '/categories'"
           routerLinkActive="bg-indigo-50 text-indigo-600 border-r-2 border-indigo-600"
           class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
         >
@@ -100,7 +120,7 @@
         </a>
 
         <a
-          routerLink="/admin/authors"
+          [routerLink]="getBasePath() + '/authors'"
           routerLinkActive="bg-indigo-50 text-indigo-600 border-r-2 border-indigo-600"
           class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
         >
@@ -116,7 +136,7 @@
         </a>
 
         <a
-          routerLink="/admin/publishers"
+          [routerLink]="getBasePath() + '/publishers'"
           routerLinkActive="bg-indigo-50 text-indigo-600 border-r-2 border-indigo-600"
           class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
         >
@@ -132,7 +152,7 @@
         </a>
 
         <a
-          routerLink="/admin/memberships"
+          [routerLink]="getBasePath() + '/memberships'"
           routerLinkActive="bg-indigo-50 text-indigo-600 border-r-2 border-indigo-600"
           class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
         >
@@ -148,7 +168,7 @@
         </a>
 
         <a
-          routerLink="/admin/analytics"
+          [routerLink]="getBasePath() + '/analytics'"
           routerLinkActive="bg-indigo-50 text-indigo-600 border-r-2 border-indigo-600"
           class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
         >
@@ -164,7 +184,7 @@
         </a>
 
         <a
-          routerLink="/admin/reports"
+          [routerLink]="getBasePath() + '/reports'"
           routerLinkActive="bg-indigo-50 text-indigo-600 border-r-2 border-indigo-600"
           class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
         >
@@ -178,6 +198,59 @@
           </svg>
           Báo cáo thống kê
         </a>
+
+        <!-- Reviews Management (Admin Only) -->
+        <a
+          *ngIf="isAdmin()"
+          routerLink="/admin/reviews"
+          routerLinkActive="bg-indigo-50 text-indigo-600"
+          class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+            />
+          </svg>
+          Quản lý đánh giá
+        </a>
+
+        <!-- Payment Management (Admin Only) -->
+        <a
+          *ngIf="isAdmin()"
+          routerLink="/admin/payments"
+          routerLinkActive="bg-indigo-50 text-indigo-600"
+          class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+            />
+          </svg>
+          Quản lý thanh toán
+        </a>
+
+        <!-- Pending Payments (Librarian & Admin) -->
+        <a
+          [routerLink]="getBasePath() + '/pending-payments'"
+          routerLinkActive="bg-indigo-50 text-indigo-600"
+          class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          Xác nhận thanh toán
+        </a>
       </nav>
     </div>
 
@@ -189,7 +262,15 @@
         </div>
         <div class="ml-3">
           <p class="text-sm font-medium text-gray-900">{{ currentUser?.name }}</p>
-          <p class="text-xs text-gray-500">{{ currentUser?.role }}</p>
+          <p class="text-xs text-gray-500">
+            {{
+              currentUser?.role === 'ROLE_ADMIN'
+                ? 'Quản trị viên'
+                : currentUser?.role === 'ROLE_LIBRARIAN'
+                ? 'Thủ thư'
+                : 'Người dùng'
+            }}
+          </p>
         </div>
       </div>
       <button

@@ -1,10 +1,13 @@
 package com.example.be_qltv.dto;
 
+import java.time.LocalDateTime;
+
 public class CategoryDTO {
     private Long id;
     private String name;
     private String description;
     private int bookCount;
+    private LocalDateTime createdDate;
     
     public CategoryDTO() {}
 
@@ -46,5 +49,13 @@ public class CategoryDTO {
 
     public void setBookCount(int bookCount) {
         this.bookCount = bookCount;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
     }
 }

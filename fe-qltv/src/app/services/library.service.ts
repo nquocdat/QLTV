@@ -33,7 +33,7 @@ export class LibraryService {
     return this.http.get<any>(`${this.apiUrl}/dashboard`, this.getHttpOptions()).pipe(
       map((backendStats: any) => ({
         totalBooks: backendStats.totalBooks || 0,
-        totalUsers: backendStats.totalPatrons || 0,
+        totalUsers: backendStats.totalUsers || backendStats.totalPatrons || 0, // Use totalUsers first, fallback to totalPatrons
         activeLoans: backendStats.activeLoans || 0,
         totalLoans: backendStats.totalLoans || 0,
       }))

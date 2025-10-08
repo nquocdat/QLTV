@@ -102,6 +102,7 @@ public class AuthorService {
         dto.setBiography(author.getBiography());
         dto.setBirthDate(author.getBirthDate());
         dto.setNationality(author.getNationality());
+        dto.setCreatedDate(author.getCreatedDate());
         return dto;
     }
     

@@ -32,8 +32,12 @@ export interface UserMembership {
   currentPoints: number;
   totalLoans: number;
   violations: number;
+  violationCount?: number; // Alias for backend compatibility
   joinDate: Date;
   nextTierProgress: number;
+  tier?: MembershipTier; // Optional tier details
+  userName?: string;
+  userEmail?: string;
 }
 
 // Book status tracking

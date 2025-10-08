@@ -55,7 +55,7 @@ export class UserManagement implements OnInit {
       password: [''],
       phoneNumber: [''],
       address: [''],
-      role: ['ROLE_USER', Validators.required],
+      role: ['USER', Validators.required],
       isActive: [true],
     });
   }
@@ -113,20 +113,18 @@ export class UserManagement implements OnInit {
       filtered = filtered.filter((user) => user.isActive === isActive);
     }
 
-    this.filteredUsers = filtered;
+    // Update total count and pages
     this.totalItems = filtered.length;
     this.calculateTotalPages();
-    this.paginateUsers();
+
+    // Apply pagination
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.filteredUsers = filtered.slice(startIndex, endIndex);
   }
 
   calculateTotalPages(): void {
     this.totalPages = Math.ceil(this.totalItems / this.pageSize);
-  }
-
-  paginateUsers(): void {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.filteredUsers = this.filteredUsers.slice(startIndex, endIndex);
   }
 
   previousPage(): void {
@@ -164,7 +162,8 @@ export class UserManagement implements OnInit {
     this.modalMode = 'add';
     this.selectedUser = null;
     this.initializeForm();
-    this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+    // Password is optional - backend will use default "password" if not provided
+    this.userForm.get('password')?.clearValidators();
     this.userForm.get('password')?.updateValueAndValidity();
     this.showUserModal = true;
   }
@@ -209,9 +208,17 @@ export class UserManagement implements OnInit {
             this.loadUsers(); // Reload the user list
             this.isLoading = false;
             this.closeModal();
+
+            // Show success message with default password info
+            const password = formData.password || 'password';
+            const message = formData.password
+              ? `✅ Tạo người dùng thành công!\n\nEmail: ${formData.email}\nMật khẩu: ${password}\n\nVui lòng thông báo cho người dùng.`
+              : `✅ Tạo người dùng thành công!\n\nEmail: ${formData.email}\nMật khẩu mặc định: password\n\nVui lòng thông báo cho người dùng đăng nhập và đổi mật khẩu.`;
+            alert(message);
           },
           error: (error) => {
             console.error('Lỗi khi thêm người dùng:', error);
+            alert('❌ Lỗi khi tạo người dùng! Vui lòng thử lại.');
             this.isLoading = false;
           },
         });
@@ -264,10 +271,13 @@ export class UserManagement implements OnInit {
 
   getRoleBadgeClass(role: string): string {
     switch (role) {
+      case 'ADMIN':
       case 'ROLE_ADMIN':
         return 'bg-purple-100 text-purple-800';
+      case 'LIBRARIAN':
       case 'ROLE_LIBRARIAN':
         return 'bg-blue-100 text-blue-800';
+      case 'USER':
       case 'ROLE_USER':
         return 'bg-gray-100 text-gray-800';
       default:
@@ -277,6 +287,13 @@ export class UserManagement implements OnInit {
 
   getRoleDisplayName(role: string): string {
     switch (role) {
+      case 'ADMIN':
+        return 'Quản trị viên';
+      case 'LIBRARIAN':
+        return 'Thủ thư';
+      case 'USER':
+        return 'Người dùng';
+      // Backward compatibility
       case 'ROLE_ADMIN':
         return 'Quản trị viên';
       case 'ROLE_LIBRARIAN':

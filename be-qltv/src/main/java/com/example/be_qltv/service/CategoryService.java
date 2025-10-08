@@ -91,6 +91,7 @@ public class CategoryService {
     dto.setName(category.getName());
     dto.setDescription(category.getDescription());
     dto.setBookCount(category.getBooks() != null ? category.getBooks().size() : 0);
+    dto.setCreatedDate(category.getCreatedDate());
     return dto;
     }
     

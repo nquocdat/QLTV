@@ -72,6 +72,9 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     // Find loans by patron ID with pagination
     Page<Loan> findByPatronId(Long patronId, Pageable pageable);
     
+    // Find loans by patron and book (for review eligibility)
+    List<Loan> findByPatronIdAndBookId(Long patronId, Long bookId);
+    
     // Find loans by book with pagination
     Page<Loan> findByBook(Book book, Pageable pageable);
     

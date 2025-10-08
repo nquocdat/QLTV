@@ -1,0 +1,313 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">📚 Quản lý Bản sao Sách</h1>
+    <p class="text-gray-600">Quản lý các bản sao vật lý của sách trong thư viện</p>
+  </div>
+
+  <!-- Action Bar -->
+  <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <div class="flex flex-wrap gap-4 items-center justify-between">
+      <div class="flex gap-2">
+        <button
+          (click)="openBulkCreateModal()"
+          class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700"
+        >
+          ➕ Tạo bản sao mới
+        </button>
+        <button
+          (click)="viewMaintenance()"
+          class="px-4 py-2 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700"
+        >
+          🔧 Cần bảo trì
+        </button>
+        <button
+          (click)="loadCopies()"
+          class="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300"
+        >
+          🔄 Làm mới
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="flex gap-2">
+        <input
+          type="text"
+          [(ngModel)]="searchBarcode"
+          placeholder="Tìm theo barcode..."
+          class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="text-center py-12">
+    <div
+      class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"
+    ></div>
+    <p class="mt-4 text-gray-600">Đang tải dữ liệu...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !isLoading" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <p class="text-red-800">❌ {{ error }}</p>
+  </div>
+
+  <!-- Copies Table -->
+  <div *ngIf="!isLoading && !error" class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Bản sao
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Sách
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Barcode
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Trạng thái
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Tình trạng
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Vị trí
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Thao tác
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let copy of copies" class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium text-gray-900">Copy #{{ copy.copyNumber }}</div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="text-sm text-gray-900 font-medium">{{ copy.bookTitle }}</div>
+            <div class="text-sm text-gray-500">{{ copy.bookAuthor }}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">{{ copy.barcode }}</code>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span
+              class="px-2 py-1 rounded text-xs font-semibold"
+              [ngClass]="getStatusClass(copy.status)"
+            >
+              {{ getStatusIcon(copy.status) }} {{ copy.statusDisplay }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span
+              class="px-2 py-1 rounded text-xs font-medium"
+              [ngClass]="getConditionClass(copy.conditionStatus)"
+            >
+              {{ copy.conditionStatusDisplay }}
+            </span>
+          </td>
+          <td class="px-6 py-4">
+            <div class="text-sm text-gray-900">📍 {{ copy.location }}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <button
+              (click)="openEditModal(copy)"
+              class="text-indigo-600 hover:text-indigo-900 mr-3"
+            >
+              ✏️ Sửa
+            </button>
+            <button
+              (click)="deleteCopy(copy)"
+              [disabled]="copy.status === 'BORROWED'"
+              class="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              🗑️ Xóa
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="copies.length === 0" class="text-center py-12">
+      <p class="text-gray-500">📭 Không có bản sao nào.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Create Modal -->
+<div
+  *ngIf="showBulkCreateModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+>
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">➕ Tạo bản sao mới</h3>
+
+      <form (ngSubmit)="submitBulkCreate()" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Chọn sách</label>
+          <select
+            [(ngModel)]="selectedBookForCreate"
+            name="bookId"
+            required
+            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          >
+            <option [value]="null">-- Chọn sách --</option>
+            <option *ngFor="let book of books" [value]="book.id">
+              {{ book.title }} ({{ book.author }})
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng</label>
+          <input
+            type="number"
+            [(ngModel)]="bulkCreateForm.quantity"
+            name="quantity"
+            min="1"
+            max="100"
+            required
+            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Vị trí</label>
+          <input
+            type="text"
+            [(ngModel)]="bulkCreateForm.location"
+            name="location"
+            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Giá (VND)</label>
+          <input
+            type="number"
+            [(ngModel)]="bulkCreateForm.price"
+            name="price"
+            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        <div class="flex gap-2 pt-4">
+          <button
+            type="submit"
+            class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            Tạo
+          </button>
+          <button
+            type="button"
+            (click)="closeBulkCreateModal()"
+            class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+          >
+            Hủy
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div
+  *ngIf="showEditModal && editingCopy"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+>
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">
+        ✏️ Sửa bản sao #{{ editingCopy.copyNumber }}
+      </h3>
+
+      <form (ngSubmit)="submitEdit()" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+          <select
+            [(ngModel)]="editForm.status"
+            name="status"
+            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="AVAILABLE">Có sẵn</option>
+            <option value="BORROWED">Đang mượn</option>
+            <option value="RESERVED">Đã đặt</option>
+            <option value="LOST">Thất lạc</option>
+            <option value="REPAIRING">Đang sửa</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tình trạng</label>
+          <select
+            [(ngModel)]="editForm.conditionStatus"
+            name="conditionStatus"
+            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="NEW">Mới</option>
+            <option value="GOOD">Tốt</option>
+            <option value="FAIR">Khá</option>
+            <option value="POOR">Cũ</option>
+            <option value="DAMAGED">Hỏng</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Vị trí</label>
+          <input
+            type="text"
+            [(ngModel)]="editForm.location"
+            name="location"
+            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+          <textarea
+            [(ngModel)]="editForm.notes"
+            name="notes"
+            rows="3"
+            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          ></textarea>
+        </div>
+
+        <div class="flex gap-2 pt-4">
+          <button
+            type="submit"
+            class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            Cập nhật
+          </button>
+          <button
+            type="button"
+            (click)="closeEditModal()"
+            class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+          >
+            Hủy
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

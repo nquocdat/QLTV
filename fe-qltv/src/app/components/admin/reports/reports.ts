@@ -1,6 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Chart, registerables } from 'chart.js';
 
 import {
   ReportsService,
@@ -10,6 +11,10 @@ import {
   UserReport,
   ReportFilter,
 } from '../../../services/reports.service';
+import { DashboardService } from '../../../services/dashboard.service';
+
+// Register Chart.js components
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-reports',
@@ -18,8 +23,9 @@ import {
   templateUrl: './reports.html',
   styleUrl: './reports.css',
 })
-export class Reports implements OnInit {
+export class Reports implements OnInit, AfterViewInit, OnDestroy {
   private reportsService = inject(ReportsService);
+  private dashboardService = inject(DashboardService);
 
   selectedReportType = 'overview';
   dateFrom = '';
@@ -41,12 +47,30 @@ export class Reports implements OnInit {
   loansReport: LoanReport[] = [];
   usersReport: UserReport[] = [];
 
+  // Chart instances
+  private loanTrendChart?: Chart;
+  private categoryChart?: Chart;
+
   constructor() {
     this.initializeDateRange();
   }
 
   ngOnInit(): void {
     this.generateReport();
+  }
+
+  ngAfterViewInit(): void {
+    // Wait for DOM and data to be ready before creating charts
+    setTimeout(() => {
+      if (this.selectedReportType === 'overview') {
+        this.createCharts();
+      }
+    }, 500);
+  }
+
+  ngOnDestroy(): void {
+    // Cleanup charts to prevent memory leaks
+    this.destroyCharts();
   }
 
   initializeDateRange(): void {
@@ -59,10 +83,26 @@ export class Reports implements OnInit {
 
   onReportTypeChange(): void {
     this.generateReport();
+
+    // Recreate charts if switching to overview
+    if (this.selectedReportType === 'overview') {
+      setTimeout(() => {
+        this.destroyCharts();
+        this.createCharts();
+      }, 300);
+    }
   }
 
   onDateChange(): void {
     this.generateReport();
+
+    // Refresh charts with new date range
+    if (this.selectedReportType === 'overview') {
+      setTimeout(() => {
+        this.destroyCharts();
+        this.createCharts();
+      }, 300);
+    }
   }
 
   generateReport(): void {
@@ -254,5 +294,209 @@ export class Reports implements OnInit {
       default:
         return status;
     }
+  }
+
+  // ============ CHART METHODS ============
+
+  private createCharts(): void {
+    this.createLoanTrendChart();
+    this.createCategoryChart();
+  }
+
+  private destroyCharts(): void {
+    if (this.loanTrendChart) {
+      this.loanTrendChart.destroy();
+      this.loanTrendChart = undefined;
+    }
+    if (this.categoryChart) {
+      this.categoryChart.destroy();
+      this.categoryChart = undefined;
+    }
+  }
+
+  private createLoanTrendChart(): void {
+    const canvas = document.getElementById('loanTrendChart') as HTMLCanvasElement;
+    if (!canvas) {
+      console.warn('Loan trend chart canvas not found');
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Destroy existing chart if any
+    if (this.loanTrendChart) {
+      this.loanTrendChart.destroy();
+    }
+
+    // Calculate months based on date range
+    const months = this.calculateMonthsDifference();
+
+    // Get data from service
+    this.dashboardService.getMonthlyLoanStats(months).subscribe({
+      next: (data) => {
+        this.loanTrendChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.labels,
+            datasets: [
+              {
+                label: 'Lượt mượn sách',
+                data: data.values,
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: 'rgb(59, 130, 246)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: 'rgba(59, 130, 246, 0.5)',
+                borderWidth: 1,
+                padding: 12,
+                callbacks: {
+                  label: function (context) {
+                    return `${context.dataset.label}: ${context.parsed.y} lượt`;
+                  },
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0,
+                },
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)',
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+              },
+            },
+          },
+        });
+      },
+      error: (error) => {
+        console.error('Error loading loan trend chart:', error);
+      },
+    });
+  }
+
+  private createCategoryChart(): void {
+    const canvas = document.getElementById('categoryChart') as HTMLCanvasElement;
+    if (!canvas) {
+      console.warn('Category chart canvas not found');
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (this.categoryChart) {
+      this.categoryChart.destroy();
+    }
+
+    this.dashboardService.getCategoryDistribution().subscribe({
+      next: (data) => {
+        this.categoryChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: data.labels,
+            datasets: [
+              {
+                data: data.values,
+                backgroundColor: [
+                  '#EF4444', // Red
+                  '#F59E0B', // Amber
+                  '#10B981', // Green
+                  '#3B82F6', // Blue
+                  '#8B5CF6', // Purple
+                  '#EC4899', // Pink
+                  '#14B8A6', // Teal
+                  '#F97316', // Orange
+                  '#6366F1', // Indigo
+                  '#84CC16', // Lime
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverBorderWidth: 3,
+                hoverBorderColor: '#ffffff',
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: {
+                  padding: 15,
+                  font: {
+                    size: 12,
+                  },
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                },
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                borderWidth: 1,
+                padding: 12,
+                callbacks: {
+                  label: function (context) {
+                    const label = context.label || '';
+                    const value = context.parsed || 0;
+                    const dataset = context.dataset;
+                    const total = dataset.data.reduce((acc: number, val: number) => acc + val, 0);
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    return `${label}: ${value} sách (${percentage}%)`;
+                  },
+                },
+              },
+            },
+          },
+        });
+      },
+      error: (error) => {
+        console.error('Error loading category chart:', error);
+      },
+    });
+  }
+
+  private calculateMonthsDifference(): number {
+    if (!this.dateFrom || !this.dateTo) return 6;
+
+    const from = new Date(this.dateFrom);
+    const to = new Date(this.dateTo);
+
+    const months = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+
+    return Math.max(1, months + 1); // At least 1 month
   }
 }

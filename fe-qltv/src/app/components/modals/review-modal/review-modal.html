@@ -1,0 +1,111 @@
+<div
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+  (click)="onCancel()"
+>
+  <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h3 class="text-xl font-bold text-gray-900">Đánh giá sách</h3>
+        <p class="text-sm text-gray-600 mt-1">{{ bookTitle }}</p>
+      </div>
+      <button (click)="onCancel()" class="text-gray-400 hover:text-gray-600 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Rating Selection -->
+    <div class="mb-6">
+      <label class="block text-sm font-medium text-gray-700 mb-3">
+        Đánh giá của bạn <span class="text-red-500">*</span>
+      </label>
+      <div class="flex gap-2 justify-center">
+        <button
+          *ngFor="let star of stars"
+          type="button"
+          (click)="setRating(star)"
+          (mouseenter)="setHoverRating(star)"
+          (mouseleave)="clearHoverRating()"
+          class="text-5xl transition-all transform hover:scale-110 focus:outline-none"
+          [class.text-yellow-400]="isStarFilled(star)"
+          [class.text-gray-300]="!isStarFilled(star)"
+        >
+          ★
+        </button>
+      </div>
+      <p *ngIf="selectedRating > 0" class="text-center text-sm text-gray-600 mt-2">
+        {{ getRatingText(selectedRating) }}
+      </p>
+    </div>
+
+    <!-- Comment Input -->
+    <div class="mb-6">
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Nhận xét <span class="text-red-500">*</span>
+      </label>
+      <textarea
+        [(ngModel)]="comment"
+        rows="4"
+        class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+        placeholder="Chia sẻ cảm nhận của bạn về cuốn sách này... (Tối thiểu 10 ký tự)"
+      >
+      </textarea>
+      <p class="text-sm text-gray-500 mt-1">{{ comment.length }} ký tự</p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+      <p class="text-sm text-red-600">⚠️ {{ errorMessage }}</p>
+    </div>
+
+    <!-- Info Message -->
+    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <p class="text-sm text-blue-700">
+        💡 <strong>Lưu ý:</strong> Đánh giá của bạn sẽ được gửi đến quản trị viên để xét duyệt trước
+        khi hiển thị công khai.
+      </p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-3 justify-end">
+      <button
+        (click)="onCancel()"
+        type="button"
+        [disabled]="isSubmitting"
+        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+      >
+        Hủy
+      </button>
+      <button
+        (click)="onSubmit()"
+        type="button"
+        [disabled]="isSubmitting || selectedRating === 0 || comment.trim().length < 10"
+        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        <svg *ngIf="isSubmitting" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <span>{{ isSubmitting ? 'Đang gửi...' : 'Gửi đánh giá' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import {
   MembershipTier,
   UserMembership,
@@ -14,51 +15,51 @@ import {
   providedIn: 'root',
 })
 export class AdvancedFeaturesService {
-  private membershipTiers: MembershipTier[] = [
-    {
-      id: 1,
-      name: 'Thành viên Cơ bản',
-      level: 'BASIC',
-      color: 'bg-gray-100 text-gray-800',
-      icon: 'user',
-      requirements: { minLoans: 0, minPoints: 0, maxViolations: 5 },
-      benefits: [
-        { type: 'MAX_BOOKS', value: 3, description: 'Mượn tối đa 3 cuốn cùng lúc' },
-        { type: 'LOAN_DURATION', value: 14, description: 'Thời gian mượn 14 ngày' },
-        { type: 'LATE_FEE_DISCOUNT', value: 0, description: 'Không giảm phí phạt' },
-      ],
-    },
-    {
-      id: 2,
-      name: 'Thành viên VIP',
-      level: 'VIP',
-      color: 'bg-blue-100 text-blue-800',
-      icon: 'star',
-      requirements: { minLoans: 20, minPoints: 100, maxViolations: 2 },
-      benefits: [
-        { type: 'MAX_BOOKS', value: 5, description: 'Mượn tối đa 5 cuốn cùng lúc' },
-        { type: 'LOAN_DURATION', value: 21, description: 'Thời gian mượn 21 ngày' },
-        { type: 'LATE_FEE_DISCOUNT', value: 20, description: 'Giảm 20% phí phạt trễ hạn' },
-        { type: 'RESERVATION_PRIORITY', value: true, description: 'Ưu tiên đặt trước sách' },
-      ],
-    },
-    {
-      id: 3,
-      name: 'Thành viên Premium',
-      level: 'PREMIUM',
-      color: 'bg-gold-100 text-gold-800',
-      icon: 'crown',
-      requirements: { minLoans: 50, minPoints: 300, maxViolations: 1 },
-      benefits: [
-        { type: 'MAX_BOOKS', value: 10, description: 'Mượn tối đa 10 cuốn cùng lúc' },
-        { type: 'LOAN_DURATION', value: 30, description: 'Thời gian mượn 30 ngày' },
-        { type: 'LATE_FEE_DISCOUNT', value: 50, description: 'Giảm 50% phí phạt trễ hạn' },
-        { type: 'RESERVATION_PRIORITY', value: true, description: 'Ưu tiên đặt trước sách' },
-        { type: 'EARLY_ACCESS', value: true, description: 'Truy cập sớm sách mới' },
-      ],
-    },
-  ];
+  private apiUrl = 'http://localhost:8081/api/membership';
 
+  constructor(private http: HttpClient) {}
+
+  // Membership Management - Call Real API
+  getMembershipTiers(): Observable<MembershipTier[]> {
+    return this.http.get<MembershipTier[]>(`${this.apiUrl}/tiers`);
+  }
+
+  getUserMembership(userId: number): Observable<UserMembership> {
+    return this.http.get<UserMembership>(`${this.apiUrl}/users/${userId}`);
+  }
+
+  updateMembership(userId: number, data: Partial<UserMembership>): Observable<UserMembership> {
+    return this.http.put<UserMembership>(`${this.apiUrl}/users/${userId}`, data);
+  }
+
+  upgradeMembership(userId: number, tierId: number): Observable<UserMembership> {
+    return this.http.post<UserMembership>(`${this.apiUrl}/users/${userId}/upgrade`, { tierId });
+  }
+
+  addPoints(userId: number, points: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/users/${userId}/points`, { points });
+  }
+
+  getAllUserMemberships(): Observable<UserMembership[]> {
+    return this.http.get<UserMembership[]>(`${this.apiUrl}/users`);
+  }
+
+  calculateMembershipUpgrade(
+    userId: number
+  ): Observable<{ eligible: boolean; nextTier?: MembershipTier; requirements?: any }> {
+    // Mock implementation - can be replaced with real API
+    return of({
+      eligible: true,
+      nextTier: undefined,
+      requirements: {
+        needMoreLoans: 25,
+        needMorePoints: 150,
+        maxViolationsAllowed: 1,
+      },
+    });
+  }
+
+  // Mock Analytics Data
   private mockAnalytics: LibraryAnalytics = {
     bookStatusStats: {
       available: 850,
@@ -106,42 +107,6 @@ export class AdvancedFeaturesService {
       { tierName: 'Premium', memberCount: 30, percentage: 10, color: '#F59E0B' },
     ],
   };
-
-  constructor() {}
-
-  // Membership Management
-  getMembershipTiers(): Observable<MembershipTier[]> {
-    return of(this.membershipTiers);
-  }
-
-  getUserMembership(userId: number): Observable<UserMembership> {
-    // Mock user membership data
-    const mockMembership: UserMembership = {
-      userId: userId,
-      tierId: 2, // VIP
-      currentPoints: 150,
-      totalLoans: 25,
-      violations: 1,
-      joinDate: new Date('2024-01-15'),
-      nextTierProgress: 75, // 75% to next tier
-    };
-    return of(mockMembership);
-  }
-
-  calculateMembershipUpgrade(
-    userId: number
-  ): Observable<{ eligible: boolean; nextTier?: MembershipTier; requirements?: any }> {
-    // Logic to check if user can upgrade membership
-    return of({
-      eligible: true,
-      nextTier: this.membershipTiers[2], // Premium
-      requirements: {
-        needMoreLoans: 25,
-        needMorePoints: 150,
-        maxViolationsAllowed: 1,
-      },
-    });
-  }
 
   // User Rating System
   getUserRating(userId: number): Observable<UserRating> {
@@ -199,7 +164,8 @@ export class AdvancedFeaturesService {
 
   // Analytics and Reports
   getLibraryAnalytics(): Observable<LibraryAnalytics> {
-    return of(this.mockAnalytics);
+    // Call real API instead of mock data
+    return this.http.get<LibraryAnalytics>('http://localhost:8081/api/analytics/library');
   }
 
   getBookStatistics(bookId: number): Observable<BookStatistics> {

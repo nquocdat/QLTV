@@ -1,14 +1,20 @@
 package com.example.be_qltv.controller;
 
 import com.example.be_qltv.dto.LoanDTO;
+import com.example.be_qltv.entity.LoanPayment;
+import com.example.be_qltv.repository.LoanPaymentRepository;
 import com.example.be_qltv.service.LoanService;
+import com.example.be_qltv.service.VNPayService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -28,6 +34,12 @@ public class LoanController {
     
     @Autowired
     private LoanService loanService;
+    
+    @Autowired
+    private LoanPaymentRepository loanPaymentRepository;
+    
+    @Autowired
+    private VNPayService vnPayService;
     
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN')")
@@ -83,6 +95,59 @@ public class LoanController {
         }
     }
     
+    /**
+     * Mượn sách với thanh toán (CASH hoặc VNPAY)
+     */
+    @PostMapping("/borrow-with-payment")
+    @PreAuthorize("hasRole('USER') or hasRole('LIBRARIAN') or hasRole('ADMIN')")
+    public ResponseEntity<?> borrowBookWithPayment(
+            @RequestParam Long bookId,
+            @RequestParam Long patronId,
+            @RequestParam String paymentMethod,
+            HttpServletRequest request) {
+        try {
+            System.out.println("LoanController.borrowBookWithPayment - START");
+            System.out.println("Params: bookId=" + bookId + ", patronId=" + patronId + ", paymentMethod=" + paymentMethod);
+            
+            // Tạo loan và payment
+            LoanDTO loan = loanService.borrowBookWithPayment(bookId, patronId, paymentMethod);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("loanId", loan.getId());
+            
+            if ("VNPAY".equalsIgnoreCase(paymentMethod)) {
+                // Tạo VNPay payment URL
+                LoanPayment payment = loanPaymentRepository.findByLoanId(loan.getId())
+                        .orElseThrow(() -> new RuntimeException("Payment not found"));
+                
+                String paymentUrl = vnPayService.createLoanPaymentUrl(payment, request);
+                
+                response.put("paymentUrl", paymentUrl);
+                response.put("paymentMethod", "VNPAY");
+                response.put("message", "Vui lòng thanh toán để hoàn tất mượn sách");
+                response.put("amount", payment.getAmount());
+            } else {
+                // Cash payment
+                response.put("paymentMethod", "CASH");
+                response.put("message", "Vui lòng đến quầy thủ thư để thanh toán tiền mặt và nhận sách");
+                response.put("amount", 50000);
+            }
+            
+            System.out.println("LoanController.borrowBookWithPayment - SUCCESS");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            System.err.println("LoanController.borrowBookWithPayment - ERROR");
+            System.err.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            response.put("type", e.getClass().getSimpleName());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
     @PutMapping("/{loanId}/return")
     @PreAuthorize("hasRole('USER') or hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public ResponseEntity<LoanDTO> returnBook(@PathVariable Long loanId) {
@@ -91,6 +156,26 @@ public class LoanController {
             return ResponseEntity.ok(loan);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    /**
+     * Trả sách với phí phạt hỏng sách (Admin/Librarian only)
+     * PUT /api/loans/{loanId}/return-with-damage?damageFine=50000&damageNotes=...
+     */
+    @PutMapping("/{loanId}/return-with-damage")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN')")
+    public ResponseEntity<?> returnBookWithDamage(
+            @PathVariable Long loanId,
+            @RequestParam java.math.BigDecimal damageFine,
+            @RequestParam(required = false) String damageNotes) {
+        try {
+            LoanDTO loan = loanService.returnBookWithDamageFine(loanId, damageFine, damageNotes);
+            return ResponseEntity.ok(loan);
+        } catch (RuntimeException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
     

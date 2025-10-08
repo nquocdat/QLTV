@@ -6,6 +6,8 @@ import com.example.be_qltv.entity.Patron;
 import com.example.be_qltv.repository.BookRepository;
 import com.example.be_qltv.repository.LoanRepository;
 import com.example.be_qltv.repository.PatronRepository;
+import com.example.be_qltv.repository.CategoryRepository;
+import com.example.be_qltv.repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,13 +28,20 @@ public class ReportService {
 
     @Autowired
     private PatronRepository patronRepository;
+    
+    @Autowired
+    private CategoryRepository categoryRepository;
+    
+    @Autowired
+    private AuthorRepository authorRepository;
 
     public Map<String, Object> getDashboardStatistics() {
         Map<String, Object> stats = new HashMap<>();
         
         // Basic counts
         stats.put("totalBooks", bookRepository.count());
-        stats.put("totalPatrons", patronRepository.count());
+        stats.put("totalUsers", patronRepository.count());  // Changed from totalPatrons
+        stats.put("totalPatrons", patronRepository.count()); // Keep for backward compatibility
         stats.put("totalLoans", loanRepository.count());
         stats.put("availableBooks", bookRepository.findAvailableBooks().size());
         
@@ -40,6 +49,27 @@ public class ReportService {
         stats.put("activeLoans", loanRepository.findActiveLoan().size());
         stats.put("overdueLoans", loanRepository.findOverdueLoans().size());
         stats.put("activePatrons", patronRepository.countActivePatrons());
+        
+        // Additional counts for reports
+        stats.put("totalCategories", categoryRepository.count());
+        stats.put("totalAuthors", authorRepository.count());
+        
+        // Revenue calculation (simplified - sum of fees from completed loans)
+        long totalRevenue = 0;
+        try {
+            List<Loan> completedLoans = loanRepository.findAll().stream()
+                .filter(loan -> loan.getReturnDate() != null)
+                .collect(Collectors.toList());
+            
+            for (Loan loan : completedLoans) {
+                if (loan.getBook() != null && loan.getBook().getFee() != null) {
+                    totalRevenue += loan.getBook().getFee();
+                }
+            }
+        } catch (Exception e) {
+            // If calculation fails, default to 0
+        }
+        stats.put("totalRevenue", totalRevenue);
         
         // Recent activity
         LocalDate today = LocalDate.now();

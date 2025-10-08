@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { LoanService } from '../../../services/loan.service';
+import { ReviewService } from '../../../services/review.service';
 import { JwtResponse } from '../../../models/patron.model';
 import { Loan } from '../../../models/loan.model';
 import {
@@ -11,10 +12,11 @@ import {
   UserMembership,
   UserRating,
 } from '../../../models/advanced-features.model';
+import { ReviewModal } from '../../modals/review-modal/review-modal';
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, ReviewModal],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
@@ -39,8 +41,13 @@ export class Profile implements OnInit {
   userMembership: UserMembership | null = null;
   userRating: UserRating | null = null;
 
+  // Review modal
+  showReviewModal = false;
+  selectedLoanForReview: Loan | null = null;
+  loanReviewStatus: Map<number, boolean> = new Map(); // Track which loans have reviews
+
   // Tab management
-  activeTab = 'loans'; // 'loans', 'history', 'settings', 'membership'
+  activeTab = 'loans'; // 'loans', 'history', 'membership'
 
   // Statistics
   stats = {
@@ -51,7 +58,11 @@ export class Profile implements OnInit {
     points: 0,
   };
 
-  constructor(private authService: AuthService, private loanService: LoanService) {}
+  constructor(
+    private authService: AuthService,
+    private loanService: LoanService,
+    private reviewService: ReviewService
+  ) {}
 
   ngOnInit(): void {
     this.loadUserData();
@@ -75,6 +86,7 @@ export class Profile implements OnInit {
         next: (loans: Loan[]) => {
           this.userLoans = loans;
           this.calculateStats();
+          this.checkReviewStatus(); // Check which loans have reviews
         },
         error: (error) => {
           console.error('Error loading user loans:', error);
@@ -126,7 +138,9 @@ export class Profile implements OnInit {
 
   private calculateStats(): void {
     this.stats.totalLoans = this.userLoans.length;
-    this.stats.activeLoans = this.userLoans.filter((loan) => loan.status === 'ACTIVE').length;
+    this.stats.activeLoans = this.userLoans.filter(
+      (loan) => loan.status === 'BORROWED' || loan.status === 'OVERDUE' || loan.status === 'RENEWED'
+    ).length;
     this.stats.onTimeReturns = this.userLoans.filter(
       (loan) => loan.returnDate && new Date(loan.returnDate) <= new Date(loan.dueDate)
     ).length;
@@ -140,7 +154,7 @@ export class Profile implements OnInit {
 
   getActiveLoans(): Loan[] {
     return this.userLoans.filter(
-      (l) => l.status === 'ACTIVE' || l.status === 'OVERDUE' || l.status === 'BORROWED'
+      (l) => l.status === 'BORROWED' || l.status === 'OVERDUE' || l.status === 'RENEWED'
     );
   }
 
@@ -190,7 +204,8 @@ export class Profile implements OnInit {
 
   getStatusClass(status: string): string {
     const classes: { [key: string]: string } = {
-      ACTIVE: 'bg-green-100 text-green-800',
+      BORROWED: 'bg-green-100 text-green-800',
+      RENEWED: 'bg-blue-100 text-blue-800',
       OVERDUE: 'bg-red-100 text-red-800',
       RETURNED: 'bg-gray-100 text-gray-800',
     };
@@ -199,7 +214,8 @@ export class Profile implements OnInit {
 
   getStatusText(status: string): string {
     const texts: { [key: string]: string } = {
-      ACTIVE: 'Đang mượn',
+      BORROWED: 'Đang mượn',
+      RENEWED: 'Đã gia hạn',
       OVERDUE: 'Quá hạn',
       RETURNED: 'Đã trả',
     };
@@ -215,5 +231,56 @@ export class Profile implements OnInit {
 
   formatDate(date: string): string {
     return new Intl.DateTimeFormat('vi-VN').format(new Date(date));
+  }
+
+  // Review functionality
+  private checkReviewStatus(): void {
+    // Check review status for returned loans
+    const returnedLoans = this.userLoans.filter((loan) => loan.status === 'RETURNED' && loan.id);
+
+    returnedLoans.forEach((loan) => {
+      if (loan.id) {
+        this.reviewService.getReviewByLoanId(loan.id).subscribe({
+          next: (review) => {
+            if (review && loan.id) {
+              this.loanReviewStatus.set(loan.id, true);
+            }
+          },
+          error: () => {
+            // No review exists for this loan
+            if (loan.id) {
+              this.loanReviewStatus.set(loan.id, false);
+            }
+          },
+        });
+      }
+    });
+  }
+
+  canReviewLoan(loan: Loan): boolean {
+    if (!loan.id) return false;
+    return loan.status === 'RETURNED' && !this.loanReviewStatus.get(loan.id);
+  }
+
+  hasReview(loan: Loan): boolean {
+    if (!loan.id) return false;
+    return this.loanReviewStatus.get(loan.id) || false;
+  }
+
+  openReviewModal(loan: Loan): void {
+    this.selectedLoanForReview = loan;
+    this.showReviewModal = true;
+  }
+
+  closeReviewModal(): void {
+    this.showReviewModal = false;
+    this.selectedLoanForReview = null;
+  }
+
+  onReviewSubmitted(): void {
+    this.closeReviewModal();
+    // Refresh review status
+    this.checkReviewStatus();
+    alert('Đánh giá của bạn đã được gửi và đang chờ phê duyệt!');
   }
 }

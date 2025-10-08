@@ -4,6 +4,15 @@ import { Observable } from 'rxjs';
 import { Loan, BorrowRequest } from '../models/loan.model';
 import { AuthService } from './auth.service';
 
+export interface BorrowWithPaymentResponse {
+  loanId: number;
+  paymentUrl?: string;
+  paymentMethod: 'CASH' | 'VNPAY';
+  message: string;
+  amount: number;
+  error?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -54,8 +63,38 @@ export class LoanService {
     );
   }
 
+  /**
+   * Mượn sách với thanh toán (CASH hoặc VNPAY)
+   */
+  borrowBookWithPayment(
+    bookId: number,
+    patronId: number,
+    paymentMethod: 'CASH' | 'VNPAY'
+  ): Observable<BorrowWithPaymentResponse> {
+    return this.http.post<BorrowWithPaymentResponse>(
+      `${this.apiUrl}/borrow-with-payment?bookId=${bookId}&patronId=${patronId}&paymentMethod=${paymentMethod}`,
+      {},
+      this.getHttpOptions()
+    );
+  }
+
   returnBook(loanId: number): Observable<Loan> {
     return this.http.put<Loan>(`${this.apiUrl}/${loanId}/return`, {}, this.getHttpOptions());
+  }
+
+  /**
+   * Trả sách với phí phạt hỏng sách
+   */
+  returnBookWithDamage(loanId: number, damageFine: number, damageNotes?: string): Observable<Loan> {
+    const params: any = { damageFine: damageFine.toString() };
+    if (damageNotes) {
+      params.damageNotes = damageNotes;
+    }
+    return this.http.put<Loan>(
+      `${this.apiUrl}/${loanId}/return-with-damage`,
+      {},
+      { ...this.getHttpOptions(), params }
+    );
   }
 
   renewLoan(loanId: number): Observable<Loan> {
@@ -78,6 +117,21 @@ export class LoanService {
       `${this.apiUrl}/${loanId}/confirm-return`,
       {},
       this.getHttpOptions()
+    );
+  }
+
+  getVNPayUrl(amount: number, orderId: string, orderInfo: string): Observable<string> {
+    return this.http.post<string>(
+      'http://localhost:8081/api/payments/vnpay/url',
+      {},
+      {
+        params: {
+          amount: amount.toString(),
+          orderId,
+          orderInfo,
+        },
+        ...this.getHttpOptions(),
+      }
     );
   }
 }

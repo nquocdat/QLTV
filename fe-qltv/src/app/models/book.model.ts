@@ -16,8 +16,10 @@ export interface Book {
   totalCopies: number;
   availableCopies?: number;
   addedDate?: Date;
+  createdDate?: Date;
   categoryName?: string; // Thêm thuộc tính categoryName vào interface Book
   publisherName?: string; // Thêm thuộc tính publisherName vào interface Book
+  fee?: number; // Giá mượn sách
 }
 
 export interface BookCreateRequest {

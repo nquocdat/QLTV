@@ -1,6 +1,7 @@
 package com.example.be_qltv.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDateTime;
 
 public class PublisherDTO {
  private Long id;
@@ -15,6 +16,7 @@ public class PublisherDTO {
  private String country;
  private Integer establishedYear;
  private String description;
+ private LocalDateTime createdDate;
 
  public PublisherDTO() {
  }
@@ -97,6 +99,14 @@ public class PublisherDTO {
 
  public void setDescription(String description) {
      this.description = description;
+ }
+
+ public LocalDateTime getCreatedDate() {
+     return createdDate;
+ }
+
+ public void setCreatedDate(LocalDateTime createdDate) {
+     this.createdDate = createdDate;
  }
 
  @Override

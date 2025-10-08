@@ -1,0 +1,18 @@
+<div *ngIf="visible" class="dialog-backdrop">
+  <div class="dialog">
+    <h2>Thông tin mượn sách</h2>
+    <div class="info">
+      <p><strong>Tên sách:</strong> {{ book.title }}</p>
+      <p><strong>Tác giả:</strong> {{ book.author }}</p>
+      <p><strong>Giá mượn:</strong> {{ book.fee | number }} VND</p>
+    </div>
+    <div class="payment-method">
+      <label><strong>Chọn hình thức thanh toán:</strong></label>
+      <div class="options">
+        <button (click)="choose('online')" class="btn btn-primary">Thanh toán Online</button>
+        <button (click)="choose('cash')" class="btn btn-secondary">Thanh toán Tiền mặt</button>
+      </div>
+    </div>
+    <button (click)="close.emit()" class="btn btn-cancel">Hủy</button>
+  </div>
+</div>

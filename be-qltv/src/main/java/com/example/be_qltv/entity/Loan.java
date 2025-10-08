@@ -17,6 +17,10 @@ public class Loan {
     private Book book;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_copy_id")
+    private BookCopy bookCopy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patron_id", nullable = false)
     private Patron patron;
 
@@ -32,7 +36,7 @@ public class Loan {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private LoanStatus status = LoanStatus.BORROWED;
+    private LoanStatus status = LoanStatus.PENDING_PAYMENT;
 
     @Column(name = "fine_amount", precision = 10, scale = 2)
     private BigDecimal fineAmount = BigDecimal.ZERO;
@@ -50,7 +54,12 @@ public class Loan {
     private LocalDate updatedDate;
 
     public enum LoanStatus {
-    BORROWED, RETURNED, OVERDUE, RENEWED, PENDING_RETURN
+        PENDING_PAYMENT,  // Chờ thanh toán
+        BORROWED,         // Đã mượn (sau khi thanh toán thành công)
+        RETURNED,         // Đã trả
+        OVERDUE,          // Quá hạn
+        RENEWED,          // Đã gia hạn
+        PENDING_RETURN    // Chờ xác nhận trả
     }
 
     // Constructors
@@ -91,6 +100,15 @@ public class Loan {
 
     public void setPatron(Patron patron) {
         this.patron = patron;
+        this.updatedDate = LocalDate.now();
+    }
+
+    public BookCopy getBookCopy() {
+        return bookCopy;
+    }
+
+    public void setBookCopy(BookCopy bookCopy) {
+        this.bookCopy = bookCopy;
         this.updatedDate = LocalDate.now();
     }
 

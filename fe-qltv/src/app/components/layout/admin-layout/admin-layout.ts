@@ -26,6 +26,10 @@ export class AdminLayout implements OnInit {
     '/admin/memberships': 'Quản lý thành viên',
     '/admin/analytics': 'Phân tích dữ liệu',
     '/admin/reports': 'Báo cáo thống kê',
+    '/admin/reviews': 'Quản lý đánh giá',
+    '/admin/payments': 'Quản lý thanh toán',
+    '/admin/pending-payments': 'Xác nhận thanh toán',
+    '/admin/copies': 'Quản lý bản sao',
     '/librarian/dashboard': 'Tổng quan hệ thống',
     '/librarian/books': 'Quản lý sách',
     '/librarian/loans': 'Quản lý mượn trả',
@@ -35,6 +39,8 @@ export class AdminLayout implements OnInit {
     '/librarian/memberships': 'Quản lý thành viên',
     '/librarian/analytics': 'Phân tích dữ liệu',
     '/librarian/reports': 'Báo cáo thống kê',
+    '/librarian/pending-payments': 'Xác nhận thanh toán',
+    '/librarian/copies': 'Quản lý bản sao',
   };
 
   constructor(private authService: AuthService, private router: Router) {}

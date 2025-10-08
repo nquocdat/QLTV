@@ -1,0 +1,26 @@
+/* Admin Copies Component Styles */
+
+.container {
+  max-width: 1400px;
+}
+
+/* Table hover effect */
+tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Modal backdrop */
+.fixed.inset-0 {
+  backdrop-filter: blur(2px);
+}

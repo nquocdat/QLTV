@@ -1,0 +1,185 @@
+# IDE
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ===================================
+# BACKEND - SPRING BOOT & MAVEN
+# ===================================
+
+# Maven
+be-qltv/target/
+be-qltv/.mvn/
+be-qltv/mvnw
+be-qltv/mvnw.cmd
+be-qltv/pom.xml.tag
+be-qltv/pom.xml.releaseBackup
+be-qltv/pom.xml.versionsBackup
+be-qltv/pom.xml.next
+be-qltv/release.properties
+be-qltv/dependency-reduced-pom.xml
+be-qltv/buildNumber.properties
+be-qltv/.mvn/timing.properties
+be-qltv/.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot
+be-qltv/*.jar
+be-qltv/*.war
+be-qltv/*.ear
+be-qltv/*.zip
+be-qltv/*.tar.gz
+be-qltv/*.nar
+be-qltv/hs_err_pid*
+be-qltv/replay_pid*
+
+# Compiled class files
+be-qltv/**/*.class
+
+# ===================================
+# FRONTEND - ANGULAR
+# ===================================
+
+# Dependencies
+fe-qltv/node_modules/
+fe-qltv/.pnp
+fe-qltv/.pnp.js
+
+# Testing
+fe-qltv/coverage/
+
+# Production build
+fe-qltv/dist/
+fe-qltv/tmp/
+fe-qltv/out-tsc/
+
+# Angular cache
+fe-qltv/.angular/
+fe-qltv/.sass-cache/
+
+# IDEs and editors
+fe-qltv/.idea/
+fe-qltv/.project
+fe-qltv/.classpath
+fe-qltv/.c9/
+fe-qltv/*.launch
+fe-qltv/.settings/
+fe-qltv/*.sublime-workspace
+
+# System files
+fe-qltv/.DS_Store
+fe-qltv/Thumbs.db
+
+# Lock files
+fe-qltv/package-lock.json
+fe-qltv/yarn.lock
+
+# ===================================
+# ENVIRONMENT & SECRETS
+# ===================================
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+be-qltv/src/main/resources/application-local.properties
+be-qltv/src/main/resources/application-dev.properties
+be-qltv/src/main/resources/application-prod.properties
+
+# VNPay secrets (if any)
+*vnpay-secret*
+*vnpay-config-private*
+
+# ===================================
+# TEMPORARY FILES
+# ===================================
+
+# Temp files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+.#*
+
+# Backup folders
+backup/
+backup_*/
+old/
+archive/
+
+# Documentation drafts
+*_DRAFT.md
+*_OLD.md
+*_BACKUP.md
+*_TEMP.md
+
+# ===================================
+# BUILD & TEST
+# ===================================
+
+# Test scripts
+start-*.bat
+test-*.ps1
+test-*.sh
+*.test.js
+*.spec.backup
+
+# Database dumps (optional - uncomment if needed)
+# *.sql
+# dump-*.sql
+# backup-*.sql
+
+# ===================================
+# GIT
+# ===================================
+
+# Git merge conflicts
+*.orig
+
+# ===================================
+# PROJECT SPECIFIC
+# ===================================
+
+# Sample/Demo code
+SAMPLE_CODE_*
+demo_*
+example_*
+
+# Cleanup scripts (after use)
+cleanup_files.bat
+
+# Old migration scripts (after applied to DB)
+# Uncomment these after confirming migrations are applied:
+# add-book-copy-column.sql
+# book-copies-cleanup.sql
+# book-copies-migration.sql
+# create-librarian-accounts.sql
+# fix-librarian-password.sql
+# reset-membership-data.sql
+
+# VNPay test files
+start-vnpay-test.bat
+test-vnpay-api.ps1
+
+# Invalid files
+res.json())
+
+# Documentation cleanup guide (after cleanup)
+# CLEANUP_FILES_GUIDE.md

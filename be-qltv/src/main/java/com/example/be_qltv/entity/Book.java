@@ -76,6 +76,9 @@ public class Book {
     @OneToMany(mappedBy = "book")
     private Set<Loan> loans = new HashSet<>();
 
+    @Column(name = "fee")
+    private Integer fee; // Giá mượn sách
+
     @PrePersist
     protected void onCreate() {
         createdDate = LocalDateTime.now();
@@ -233,6 +236,13 @@ public class Book {
 
     public void setLoans(Set<Loan> loans) {
         this.loans = loans;
+    }
+
+    public Integer getFee() {
+        return fee;
+    }
+    public void setFee(Integer fee) {
+        this.fee = fee;
     }
 
     @Override

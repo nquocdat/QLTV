@@ -25,6 +25,13 @@ public class Review {
     @Column(columnDefinition = "TEXT")
     private String comment;
     
+    @Column(nullable = false)
+    private Boolean approved = false; // Admin approval required
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_id")
+    private Loan loan; // Reference to the loan that allows this review
+    
     @Column(name = "created_date")
     private LocalDateTime createdDate;
     
@@ -110,5 +117,21 @@ public class Review {
     
     public void setUpdatedDate(LocalDateTime updatedDate) {
         this.updatedDate = updatedDate;
+    }
+    
+    public Boolean getApproved() {
+        return approved;
+    }
+    
+    public void setApproved(Boolean approved) {
+        this.approved = approved;
+    }
+    
+    public Loan getLoan() {
+        return loan;
+    }
+    
+    public void setLoan(Loan loan) {
+        this.loan = loan;
     }
 }

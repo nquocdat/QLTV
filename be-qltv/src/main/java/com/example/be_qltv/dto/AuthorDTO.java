@@ -1,6 +1,7 @@
 package com.example.be_qltv.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class AuthorDTO {
     private Long id;
@@ -9,6 +10,7 @@ public class AuthorDTO {
     private LocalDate birthDate;
     private String nationality;
     private Integer bookCount;
+    private LocalDateTime createdDate;
     
     // Constructors
     public AuthorDTO() {}
@@ -72,5 +74,13 @@ public class AuthorDTO {
 
     public void setBookCount(Integer bookCount) {
         this.bookCount = bookCount;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
     }
 }

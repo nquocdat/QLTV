@@ -311,7 +311,10 @@ export class BookManagement implements OnInit, OnDestroy {
         !this.selectedCategory ||
         (book.categoryId && book.categoryId.toString() === this.selectedCategory);
 
-      const matchesStatus = !this.selectedStatus || book.status === this.selectedStatus;
+      // Convert status to uppercase for comparison (backend returns AVAILABLE, BORROWED)
+      const matchesStatus =
+        !this.selectedStatus ||
+        (book.status && book.status.toUpperCase() === this.selectedStatus.toUpperCase());
 
       return matchesSearch && matchesCategory && matchesStatus;
     });

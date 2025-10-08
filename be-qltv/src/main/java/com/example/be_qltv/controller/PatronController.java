@@ -1,5 +1,6 @@
 package com.example.be_qltv.controller;
 
+import com.example.be_qltv.dto.ChangePasswordRequest;
 import com.example.be_qltv.dto.PatronDTO;
 import com.example.be_qltv.service.PatronService;
 import jakarta.validation.Valid;
@@ -8,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -108,5 +111,27 @@ public class PatronController {
         boolean updated = patronService.updateRole(id, role);
         return updated ? ResponseEntity.ok().build() 
                       : ResponseEntity.notFound().build();
+    }
+    
+    @PutMapping("/{id}/change-password")
+    @PreAuthorize("#id == authentication.principal.id")
+    public ResponseEntity<Map<String, String>> changePassword(
+            @PathVariable Long id, 
+            @Valid @RequestBody ChangePasswordRequest request) {
+        try {
+            boolean changed = patronService.changePassword(id, request);
+            Map<String, String> response = new HashMap<>();
+            if (changed) {
+                response.put("message", "Password changed successfully!");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("error", "Failed to change password");
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (RuntimeException e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 }

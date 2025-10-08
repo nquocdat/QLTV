@@ -684,6 +684,69 @@
           }
         }
       ]
+    },
+    {
+      "name": "VNPay Integration",
+      "item": [
+        {
+          "name": "Tạo link thanh toán VNPay",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <JWT_TOKEN>",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/payments/vnpay/url?amount=50000&orderId=ORDER_TEST&orderInfo=Thanh toán test đơn hàng",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "payments", "vnpay", "url"],
+              "query": [
+                { "key": "amount", "value": "50000" },
+                { "key": "orderId", "value": "ORDER_TEST" },
+                { "key": "orderInfo", "value": "Thanh toán test đơn hàng" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Callback IPN VNPay (Test thủ công)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "http://localhost:8081/api/payments/vnpay/ipn",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "payments", "vnpay", "ipn"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "vnp_Amount", "value": "5000000", "type": "text" },
+                { "key": "vnp_Command", "value": "pay", "type": "text" },
+                { "key": "vnp_TmnCode", "value": "K83BDEI1", "type": "text" },
+                { "key": "vnp_TxnRef", "value": "ORDER_TEST", "type": "text" },
+                {
+                  "key": "vnp_OrderInfo",
+                  "value": "Thanh toán test đơn hàng",
+                  "type": "text"
+                },
+                { "key": "vnp_ResponseCode", "value": "00", "type": "text" },
+                {
+                  "key": "vnp_SecureHash",
+                  "value": "<SECURE_HASH>",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }

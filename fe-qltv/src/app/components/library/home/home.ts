@@ -8,6 +8,7 @@ import { AuthService } from '../../../services/auth.service';
 import { BookService } from '../../../services/book.service';
 import { LibraryService, LibraryStats } from '../../../services/library.service';
 import { LoanService } from '../../../services/loan.service';
+import { ReviewService, ReviewDTO, ReviewStats } from '../../../services/review.service';
 import {
   MembershipTier,
   UserMembership,
@@ -16,10 +17,22 @@ import {
 import { JwtResponse } from '../../../models/patron.model';
 import { Book } from '../../../models/book.model';
 import { PublisherService } from '../../../services/publisher.service';
+import { PaymentMethodModalComponent } from '../../shared/payment-method-modal/payment-method-modal.component';
+import { BookCopiesListComponent } from '../../shared/book-copies-list/book-copies-list.component';
+import { AdvancedFeaturesService } from '../../../services/advanced-features.service';
+import { StarRating } from '../../shared/star-rating/star-rating';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, RouterModule, FormsModule],
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    PaymentMethodModalComponent,
+    BookCopiesListComponent,
+    StarRating,
+  ],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -50,6 +63,11 @@ export class Home implements OnInit {
   currentUser: JwtResponse | null = null;
   showBookDetailModal: boolean = false;
   selectedBook: any = null;
+
+  // Review data
+  bookReviews: ReviewDTO[] = [];
+  reviewStats: ReviewStats | null = null;
+
   membershipTier: MembershipTier | null = null;
   userMembership: UserMembership | null = null;
   userStats = {
@@ -68,6 +86,10 @@ export class Home implements OnInit {
   categories: Category[] = [];
   loanList: any[] = [];
   publishers: any[] = [];
+  showPaymentDialog: boolean = false;
+  selectedBookForPayment: any = null;
+  showPaymentModal = false;
+  isProcessingPayment = false;
 
   constructor(
     private router: Router,
@@ -76,7 +98,9 @@ export class Home implements OnInit {
     private libraryService: LibraryService,
     private categoryService: CategoryService,
     private loanService: LoanService,
-    private publisherService: PublisherService
+    private publisherService: PublisherService,
+    private advancedFeaturesService: AdvancedFeaturesService,
+    private reviewService: ReviewService
   ) {}
 
   ngOnInit(): void {
@@ -195,14 +219,88 @@ export class Home implements OnInit {
     });
   }
 
+  viewAllBooks(): void {
+    this.router.navigate(['/library/books']);
+  }
+
   openBookDetail(book: any) {
     this.selectedBook = { ...book };
     this.showBookDetailModal = true;
+
+    // Load reviews and stats for this book
+    if (book.id) {
+      this.loadBookReviews(book.id);
+      this.loadReviewStats(book.id);
+    }
   }
 
   closeBookDetailModal() {
     this.showBookDetailModal = false;
     this.selectedBook = null;
+    this.bookReviews = [];
+    this.reviewStats = null;
+  }
+
+  loadBookReviews(bookId: number): void {
+    this.reviewService.getBookReviews(bookId).subscribe({
+      next: (reviews) => {
+        this.bookReviews = reviews;
+      },
+      error: (err) => {
+        console.error('Error loading reviews:', err);
+        this.bookReviews = [];
+      },
+    });
+  }
+
+  loadReviewStats(bookId: number): void {
+    this.reviewService.getBookRatingStats(bookId).subscribe({
+      next: (stats) => {
+        this.reviewStats = stats;
+      },
+      error: (err) => {
+        console.error('Error loading review stats:', err);
+        this.reviewStats = null;
+      },
+    });
+  }
+
+  formatReviewDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }
+
+  openPaymentDialog(book: any): void {
+    this.selectedBookForPayment = book;
+    this.showPaymentDialog = true;
+  }
+
+  handlePayment(method: 'online' | 'cash') {
+    const patronId = Number(this.currentUser?.id);
+    if (!patronId) {
+      alert('Không xác định được người dùng.');
+      return;
+    }
+    if (method === 'online') {
+      this.payAndBorrowVNPay(this.selectedBookForPayment, patronId);
+    } else {
+      this.bookService.borrowBook(this.selectedBookForPayment.id, patronId).subscribe({
+        next: () => {
+          this.selectedBookForPayment.status = 'borrowed';
+          alert(
+            `Bạn đã mượn thành công sách "${this.selectedBookForPayment.title}" (thanh toán tiền mặt)`
+          );
+          this.showPaymentDialog = false;
+        },
+        error: () => {
+          alert('Có lỗi xảy ra khi mượn sách.');
+        },
+      });
+    }
   }
 
   getStatusBadgeClass(status: string): string {
@@ -236,72 +334,178 @@ export class Home implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+    if (book.availableCopies <= 0) {
+      alert('Sách này hiện không có sẵn để mượn');
+      return;
+    }
+    // Mở payment modal
+    this.selectedBookForPayment = book;
+    this.showPaymentModal = true;
+  }
+
+  closePaymentModal() {
+    this.showPaymentModal = false;
+    this.selectedBookForPayment = null;
+  }
+
+  handleConfirmPayment(paymentMethod: 'CASH' | 'VNPAY') {
+    const currentUser = this.authService.getUser();
+    if (!currentUser || !this.selectedBookForPayment) {
+      alert('❌ Có lỗi xảy ra. Vui lòng thử lại.');
+      return;
+    }
+
+    this.isProcessingPayment = true;
+
+    this.loanService
+      .borrowBookWithPayment(this.selectedBookForPayment.id, currentUser.id, paymentMethod)
+      .subscribe({
+        next: (response) => {
+          this.isProcessingPayment = false;
+          this.closePaymentModal();
+
+          if (paymentMethod === 'VNPAY' && response.paymentUrl) {
+            // Redirect to VNPay
+            window.location.href = response.paymentUrl;
+          } else if (paymentMethod === 'CASH') {
+            // Show success message for cash payment
+            alert('✅ ' + response.message);
+            // Reload data
+            this.loadRecentBooks();
+            this.loadFavoriteBooks();
+            if (this.currentUser?.id) {
+              this.loadLoanList();
+            }
+          }
+        },
+        error: (error) => {
+          this.isProcessingPayment = false;
+          alert('❌ Lỗi: ' + (error.error?.error || 'Không thể tạo phiếu mượn'));
+        },
+      });
+  }
+
+  payAndBorrowVNPay(book: Book, patronId: number) {
+    const amount = book.fee || 10000; // Sửa: lấy giá mượn từ book
+    const orderId = 'ORDER_' + new Date().getTime();
+    const orderInfo = `Thanh toán mượn sách: ${book.title}`;
+    this.loanService.getVNPayUrl(amount, orderId, orderInfo).subscribe({
+      next: (url: string) => {
+        window.location.href = url;
+      },
+      error: () => {
+        alert('Không thể tạo giao dịch thanh toán!');
+      },
+    });
+  }
+
+  choosePaymentMethod(book: any): void {
+    if (!this.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
+    }
     if (book.status?.toLowerCase() !== 'available') {
       alert('Sách này hiện không có sẵn để mượn');
       return;
     }
-    if (confirm(`Bạn có chắc muốn mượn sách "${book.title}"?`)) {
+    if (confirm(`Bạn có muốn thanh toán khi mượn sách "${book.title}"?`)) {
+      const method = prompt('Chọn phương thức thanh toán: "online" hoặc "cash"', 'cash');
       const patronId = Number(this.currentUser?.id);
       if (!patronId) {
         alert('Không xác định được người dùng.');
         return;
       }
-      this.bookService.borrowBook(book.id, patronId).subscribe({
-        next: () => {
-          book.status = 'borrowed';
-          const featuredBookIndex = this.featuredBooks.findIndex((b) => b.id === book.id);
-          if (featuredBookIndex !== -1) {
-            this.featuredBooks[featuredBookIndex].status = 'borrowed';
-          }
-          alert(`Bạn đã mượn thành công sách "${book.title}"`);
-          if (this.showBookDetailModal) {
-            this.closeBookDetailModal();
-          }
-        },
-        error: () => {
-          alert('Có lỗi xảy ra khi mượn sách.');
-        },
-      });
+      if (method === 'online') {
+        this.payAndBorrowVNPay(book, patronId);
+      } else {
+        this.bookService.borrowBook(book.id, patronId).subscribe({
+          next: () => {
+            book.status = 'borrowed';
+            const featuredBookIndex = this.featuredBooks.findIndex((b) => b.id === book.id);
+            if (featuredBookIndex !== -1) {
+              this.featuredBooks[featuredBookIndex].status = 'borrowed';
+            }
+            alert(`Bạn đã mượn thành công sách "${book.title}" (thanh toán tiền mặt)`);
+            if (this.showBookDetailModal) {
+              this.closeBookDetailModal();
+            }
+          },
+          error: () => {
+            alert('Có lỗi xảy ra khi mượn sách.');
+          },
+        });
+      }
     }
   }
 
   private loadUserMembership(): void {
+    if (!this.currentUser?.id) return;
+
+    this.advancedFeaturesService.getUserMembership(this.currentUser.id).subscribe({
+      next: (membership) => {
+        this.userMembership = membership;
+
+        // Get tier details
+        if (membership.tier) {
+          this.membershipTier = membership.tier;
+        }
+
+        // Update user stats from membership
+        this.userStats = {
+          totalLoans: membership.totalLoans || 0,
+          onTimeReturns: Math.max(
+            0,
+            (membership.totalLoans || 0) - (membership.violationCount || 0)
+          ),
+          lateReturns: membership.violationCount || 0,
+          rating: 'GOOD',
+        };
+      },
+      error: (error) => {
+        console.error('Error loading membership:', error);
+        // Use default values if API fails
+        this.setDefaultMembership();
+      },
+    });
+  }
+
+  private setDefaultMembership(): void {
     this.membershipTier = {
       id: 1,
-      name: 'VIP',
-      level: 'VIP',
+      name: 'Cơ bản',
+      level: 'BASIC',
       benefits: [
         {
           type: 'MAX_BOOKS',
-          value: 5,
-          description: 'Mượn tối đa 5 cuốn sách',
+          value: 3,
+          description: 'Mượn tối đa 3 cuốn sách',
         },
         {
           type: 'LOAN_DURATION',
-          value: 21,
-          description: 'Thời gian mượn 21 ngày',
+          value: 14,
+          description: 'Thời gian mượn 14 ngày',
         },
       ],
       requirements: {
-        minLoans: 10,
-        minPoints: 100,
+        minLoans: 0,
+        minPoints: 0,
       },
-      color: 'purple',
-      icon: 'star',
+      color: '#6B7280',
+      icon: 'user',
     };
     this.userMembership = {
-      userId: this.currentUser?.id || 1,
+      userId: this.currentUser?.id || 0,
       tierId: 1,
-      currentPoints: 150,
-      totalLoans: 15,
+      currentPoints: 0,
+      totalLoans: 0,
       violations: 0,
-      joinDate: new Date('2024-01-15'),
-      nextTierProgress: 75,
+      joinDate: new Date(),
+      nextTierProgress: 0,
     };
     this.userStats = {
-      totalLoans: 15,
-      onTimeReturns: 14,
-      lateReturns: 1,
+      totalLoans: 0,
+      onTimeReturns: 0,
+      lateReturns: 0,
       rating: 'GOOD',
     };
   }
