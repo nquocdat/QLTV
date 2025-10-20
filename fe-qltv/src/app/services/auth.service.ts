@@ -27,53 +27,66 @@ export class AuthService {
     }
   }
 
+  /** Đăng nhập */
   login(credentials: LoginRequest): Observable<JwtResponse> {
     console.log('AuthService sending to backend:', credentials);
     return this.http.post<JwtResponse>(`${this.apiUrl}/login`, credentials, this.httpOptions).pipe(
       tap((response) => {
         console.log('AuthService received from backend:', response);
-        this.saveToken(response.token);
-        this.saveUser(response);
-        this.currentUserSubject.next(response);
+
+        // ✅ Kiểm tra field token từ backend (thường là 'token' hoặc 'accessToken')
+        const token = (response as any).token || (response as any).accessToken;
+        if (token) {
+          this.saveToken(token);
+          this.saveUser(response);
+          this.currentUserSubject.next(response);
+        } else {
+          console.error('⚠️ Backend response missing token field:', response);
+        }
       })
     );
   }
 
+  /** Đăng ký */
   register(userData: RegisterRequest): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, userData, this.httpOptions);
   }
 
+  /** Đăng xuất */
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
-      window.sessionStorage.clear();
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
     }
     this.currentUserSubject.next(null);
   }
 
+  /** ✅ Lưu token (dùng localStorage để không mất khi reload) */
   public saveToken(token: string): void {
     if (isPlatformBrowser(this.platformId)) {
-      window.sessionStorage.removeItem(TOKEN_KEY);
-      window.sessionStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(TOKEN_KEY, token);
     }
   }
 
+  /** ✅ Lấy token */
   public getToken(): string | null {
     if (isPlatformBrowser(this.platformId)) {
-      return window.sessionStorage.getItem(TOKEN_KEY);
+      return localStorage.getItem(TOKEN_KEY);
     }
     return null;
   }
 
+  /** ✅ Lưu thông tin user */
   public saveUser(user: JwtResponse): void {
     if (isPlatformBrowser(this.platformId)) {
-      window.sessionStorage.removeItem(USER_KEY);
-      window.sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
     }
   }
 
+  /** ✅ Lấy thông tin user */
   public getUser(): JwtResponse | null {
     if (isPlatformBrowser(this.platformId)) {
-      const user = window.sessionStorage.getItem(USER_KEY);
+      const user = localStorage.getItem(USER_KEY);
       if (user) {
         return JSON.parse(user);
       }
@@ -81,15 +94,18 @@ export class AuthService {
     return null;
   }
 
+  /** Kiểm tra đã đăng nhập chưa */
   public isLoggedIn(): boolean {
     return !!this.getToken();
   }
 
+  /** Kiểm tra vai trò */
   public hasRole(role: string): boolean {
     const user = this.getUser();
     return user ? user.role === role : false;
   }
 
+  /** Kiểm tra role cụ thể */
   public isAdmin(): boolean {
     return this.hasRole('ROLE_ADMIN');
   }

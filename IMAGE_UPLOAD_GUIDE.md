@@ -5,6 +5,7 @@
 ### Mức độ: ⭐⭐⭐ (Trung bình - Vừa phải)
 
 **Cần sửa**:
+
 - ✅ Backend: 3-4 files
 - ✅ Frontend: 2-3 files
 - ✅ Config: 1-2 files
@@ -17,6 +18,7 @@
 ## 🏗️ KIẾN TRÚC HIỆN TẠI
 
 ### Backend (❌ Chỉ hỗ trợ URL)
+
 ```java
 // Book.java
 @Column(name = "image_url", length = 500)
@@ -30,10 +32,14 @@ public ResponseEntity<BookDTO> createBook(@RequestBody BookDTO bookDTO) {
 ```
 
 ### Frontend (❌ Chỉ nhập URL)
+
 ```html
 <!-- book-management.html -->
-<input type="text" formControlName="coverImage" 
-       placeholder="https://example.com/image.jpg">
+<input
+  type="text"
+  formControlName="coverImage"
+  placeholder="https://example.com/image.jpg"
+/>
 <!-- ❌ Không có input file -->
 ```
 
@@ -132,7 +138,7 @@ public class FileUploadService {
     public void deleteFile(String filePath) {
         try {
             if (filePath != null && filePath.startsWith("/uploads/")) {
-                Path path = Paths.get(uploadDir, 
+                Path path = Paths.get(uploadDir,
                     filePath.substring(filePath.lastIndexOf("/") + 1));
                 Files.deleteIfExists(path);
             }
@@ -158,15 +164,15 @@ import com.example.be_qltv.service.FileUploadService;
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
-    
+
     @Autowired
     private BookService bookService;
-    
+
     @Autowired
     private FileUploadService fileUploadService;  // ← THÊM MỚI
-    
+
     // ... existing code ...
-    
+
     /**
      * Upload book cover image
      * POST /api/books/upload-cover
@@ -182,7 +188,7 @@ public class BookController {
                 .body(Map.of("error", "Failed to upload image: " + e.getMessage()));
         }
     }
-    
+
     /**
      * Create book with file upload support
      * POST /api/books/with-image
@@ -199,23 +205,23 @@ public class BookController {
             @RequestParam(value = "authorId", required = false) Long authorId,
             @RequestParam(value = "publisherId", required = false) Long publisherId,
             @RequestParam(value = "totalCopies", defaultValue = "1") Integer totalCopies) {
-        
+
         try {
             BookDTO bookDTO = new BookDTO();
             bookDTO.setTitle(title);
             bookDTO.setIsbn(isbn);
             bookDTO.setDescription(description);
             // ... set other fields ...
-            
+
             // Upload image if provided
             if (file != null && !file.isEmpty()) {
                 String imageUrl = fileUploadService.uploadFile(file);
                 bookDTO.setCoverImage(imageUrl);
             }
-            
+
             BookDTO createdBook = bookService.createBook(bookDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdBook);
-            
+
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "Failed to create book: " + e.getMessage()));
@@ -274,7 +280,7 @@ spring.servlet.multipart.max-request-size=10MB
 uploadCoverImage(file: File): Observable<{ imageUrl: string }> {
   const formData = new FormData();
   formData.append('file', file);
-  
+
   return this.http.post<{ imageUrl: string }>(
     `${this.apiUrl}/upload-cover`,
     formData
@@ -284,19 +290,19 @@ uploadCoverImage(file: File): Observable<{ imageUrl: string }> {
 // Method tạo book với image upload
 createBookWithImage(bookData: any, file?: File): Observable<BookDTO> {
   const formData = new FormData();
-  
+
   // Append book data
   formData.append('title', bookData.title);
   formData.append('isbn', bookData.isbn);
   if (bookData.description) formData.append('description', bookData.description);
   if (bookData.categoryId) formData.append('categoryId', bookData.categoryId.toString());
   // ... append other fields ...
-  
+
   // Append file if exists
   if (file) {
     formData.append('file', file);
   }
-  
+
   return this.http.post<BookDTO>(
     `${this.apiUrl}/with-image`,
     formData
@@ -313,47 +319,43 @@ createBookWithImage(bookData: any, file?: File): Observable<BookDTO> {
 ```html
 <form [formGroup]="bookForm" (ngSubmit)="onSubmit()">
   <!-- ... existing fields ... -->
-  
+
   <!-- Cover Image Upload -->
   <div class="form-group">
     <label>Cover Image</label>
-    
+
     <!-- Option 1: Upload File -->
     <div class="upload-option">
-      <input 
-        type="file" 
+      <input
+        type="file"
         #fileInput
         accept="image/*"
         (change)="onFileSelected($event)"
         class="file-input"
       />
-      <button 
-        type="button" 
-        (click)="fileInput.click()"
-        class="upload-button"
-      >
+      <button type="button" (click)="fileInput.click()" class="upload-button">
         📁 Choose File
       </button>
       <span *ngIf="selectedFile">{{ selectedFile.name }}</span>
     </div>
-    
+
     <!-- Option 2: Enter URL -->
     <div class="url-option">
-      <input 
-        type="text" 
+      <input
+        type="text"
         formControlName="coverImage"
         placeholder="Or enter image URL"
         class="form-control"
       />
     </div>
-    
+
     <!-- Image Preview -->
     <div *ngIf="imagePreview" class="image-preview">
       <img [src]="imagePreview" alt="Preview" />
       <button type="button" (click)="clearImage()">✕ Remove</button>
     </div>
   </div>
-  
+
   <!-- ... submit button ... -->
 </form>
 ```
@@ -364,26 +366,26 @@ createBookWithImage(bookData: any, file?: File): Observable<BookDTO> {
 export class BookManagement {
   selectedFile: File | null = null;
   imagePreview: string | null = null;
-  
+
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
       this.selectedFile = file;
-      
+
       // Validate file type
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file');
         this.selectedFile = null;
         return;
       }
-      
+
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         alert('File size must be less than 10MB');
         this.selectedFile = null;
         return;
       }
-      
+
       // Preview image
       const reader = new FileReader();
       reader.onload = (e: any) => {
@@ -392,17 +394,17 @@ export class BookManagement {
       reader.readAsDataURL(file);
     }
   }
-  
+
   clearImage(): void {
     this.selectedFile = null;
     this.imagePreview = null;
     this.bookForm.patchValue({ coverImage: '' });
   }
-  
+
   onSubmit(): void {
     if (this.bookForm.valid) {
       const formValue = this.bookForm.value;
-      
+
       if (this.selectedFile) {
         // Upload file first
         this.bookService.uploadCoverImage(this.selectedFile).subscribe({
@@ -414,7 +416,7 @@ export class BookManagement {
           error: (error) => {
             console.error('Error uploading image:', error);
             alert('Failed to upload image');
-          }
+          },
         });
       } else {
         // No file, just create book with URL (if provided)
@@ -422,7 +424,7 @@ export class BookManagement {
       }
     }
   }
-  
+
   private createOrUpdateBook(bookData: any): void {
     if (this.modalMode === 'add') {
       this.bookService.createBook(bookData).subscribe({
@@ -433,7 +435,7 @@ export class BookManagement {
         error: (error) => {
           console.error('Error creating book:', error);
           alert('Failed to create book');
-        }
+        },
       });
     } else {
       // Update logic...
@@ -462,7 +464,7 @@ export class BookManagement {
 
 .upload-button {
   padding: 8px 16px;
-  background: #4F46E5;
+  background: #4f46e5;
   color: white;
   border: none;
   border-radius: 6px;
@@ -471,7 +473,7 @@ export class BookManagement {
 }
 
 .upload-button:hover {
-  background: #4338CA;
+  background: #4338ca;
 }
 
 .image-preview {
@@ -484,14 +486,14 @@ export class BookManagement {
   max-width: 200px;
   max-height: 200px;
   border-radius: 8px;
-  border: 2px solid #E5E7EB;
+  border: 2px solid #e5e7eb;
 }
 
 .image-preview button {
   position: absolute;
   top: -10px;
   right: -10px;
-  background: #EF4444;
+  background: #ef4444;
   color: white;
   border: none;
   border-radius: 50%;
@@ -508,7 +510,7 @@ export class BookManagement {
 .url-option input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
 }
 ```
@@ -543,6 +545,7 @@ be-qltv/uploads/
 ## 🔒 Security Considerations
 
 ### 1. File Type Validation
+
 ```java
 // Backend
 String contentType = file.getContentType();
@@ -552,18 +555,21 @@ if (!contentType.startsWith("image/")) {
 ```
 
 ### 2. File Size Limit
+
 ```properties
 # application.properties
 spring.servlet.multipart.max-file-size=10MB
 ```
 
 ### 3. Filename Sanitization
+
 ```java
 // Use UUID instead of original filename
 String filename = UUID.randomUUID().toString() + extension;
 ```
 
 ### 4. Access Control
+
 ```java
 @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN')")
 public ResponseEntity<?> uploadCoverImage(...) {
@@ -578,6 +584,7 @@ public ResponseEntity<?> uploadCoverImage(...) {
 ### Test 1: Upload Image via Postman
 
 **Request**:
+
 ```
 POST http://localhost:8081/api/books/upload-cover
 Authorization: Bearer <token>
@@ -588,6 +595,7 @@ Body:
 ```
 
 **Expected Response**:
+
 ```json
 {
   "imageUrl": "/uploads/books/a3f8d9e2-4b5c-11ef-8e12-0242ac120002.jpg"
@@ -615,21 +623,25 @@ Body:
 ## 📊 SO SÁNH TRƯỚC/SAU
 
 ### TRƯỚC (URL only)
+
 ```
 Admin nhập URL → Backend lưu URL string → Frontend hiển thị từ URL
 ```
 
 **Vấn đề**:
+
 - ❌ Phụ thuộc external URLs (broken links)
 - ❌ Không kiểm soát được images
 - ❌ Không có backup
 
 ### SAU (File Upload)
+
 ```
 Admin upload file → Backend lưu file + URL → Frontend hiển thị từ server
 ```
 
 **Ưu điểm**:
+
 - ✅ Kiểm soát hoàn toàn images
 - ✅ Không phụ thuộc external sources
 - ✅ Có thể backup dễ dàng
@@ -640,6 +652,7 @@ Admin upload file → Backend lưu file + URL → Frontend hiển thị từ ser
 ## 🎯 CHECKLIST IMPLEMENTATION
 
 ### Backend
+
 - [ ] Tạo `FileUploadService.java`
 - [ ] Thêm `uploadCoverImage()` vào `BookController`
 - [ ] Tạo `WebConfig.java` (static resource handler)
@@ -648,6 +661,7 @@ Admin upload file → Backend lưu file + URL → Frontend hiển thị từ ser
 - [ ] Test upload API với Postman
 
 ### Frontend
+
 - [ ] Thêm `uploadCoverImage()` vào `book.service.ts`
 - [ ] Thêm `<input type="file">` vào form
 - [ ] Implement `onFileSelected()` method
@@ -658,6 +672,7 @@ Admin upload file → Backend lưu file + URL → Frontend hiển thị từ ser
 - [ ] Test upload qua UI
 
 ### Testing
+
 - [ ] Upload image < 10MB
 - [ ] Upload image > 10MB (should fail)
 - [ ] Upload non-image file (should fail)
@@ -666,6 +681,7 @@ Admin upload file → Backend lưu file + URL → Frontend hiển thị từ ser
 - [ ] Delete book (optional: delete image file)
 
 ### Deployment
+
 - [ ] Thêm `uploads/` vào `.gitignore`
 - [ ] Backup `uploads/` folder trước khi deploy
 - [ ] Configure Nginx/Apache để serve static files
@@ -675,6 +691,7 @@ Admin upload file → Backend lưu file + URL → Frontend hiển thị từ ser
 ## 🚀 DEPLOY TO PRODUCTION
 
 ### Option 1: Local Storage (Simple)
+
 ```nginx
 # Nginx config
 location /uploads/ {
@@ -685,12 +702,14 @@ location /uploads/ {
 ```
 
 ### Option 2: Cloud Storage (Advanced)
+
 - AWS S3
 - Google Cloud Storage
 - Cloudinary
 - ImgBB
 
 **Lợi ích**:
+
 - ✅ CDN support
 - ✅ Auto backup
 - ✅ Scalable
@@ -701,6 +720,7 @@ location /uploads/ {
 ## 💡 OPTIONAL FEATURES
 
 ### 1. Image Resize/Optimization
+
 ```java
 // Use Thumbnailator library
 Thumbnails.of(file.getInputStream())
@@ -710,18 +730,16 @@ Thumbnails.of(file.getInputStream())
 ```
 
 ### 2. Multiple Images per Book
+
 ```java
 // Support gallery
 private List<String> imageUrls; // Instead of single imageUrl
 ```
 
 ### 3. Drag & Drop Upload
+
 ```html
-<div 
-  (drop)="onDrop($event)" 
-  (dragover)="onDragOver($event)"
-  class="dropzone"
->
+<div (drop)="onDrop($event)" (dragover)="onDragOver($event)" class="dropzone">
   Drag image here or click to browse
 </div>
 ```
@@ -731,6 +749,7 @@ private List<String> imageUrls; // Instead of single imageUrl
 ## 📝 TÓM TẮT
 
 **Cần sửa**:
+
 1. Backend: 3 files mới + 1 file config
 2. Frontend: 2 files update (service + component)
 3. Total: ~6-7 files
@@ -740,12 +759,14 @@ private List<String> imageUrls; // Instead of single imageUrl
 **Mức độ khó**: ⭐⭐⭐ (Trung bình)
 
 **Lợi ích**:
+
 - ✅ Kiểm soát hoàn toàn images
 - ✅ UX tốt hơn (file picker + preview)
 - ✅ Không phụ thuộc external URLs
 - ✅ Professional hơn
 
 **Nhược điểm**:
+
 - ⚠️ Tốn disk space
 - ⚠️ Cần backup định kỳ
 - ⚠️ Cần config server để serve files

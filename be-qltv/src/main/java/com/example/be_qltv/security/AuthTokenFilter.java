@@ -31,9 +31,18 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         System.out.println("AuthTokenFilter: Processing request: " + request.getMethod() + " " + request.getRequestURI());
-        // Chỉ bỏ qua xác thực cho GET /api/books/**
+        
         String uri = request.getRequestURI();
         String method = request.getMethod();
+        
+        // Skip JWT validation for public paths
+        if (uri.startsWith("/uploads/")) {
+            System.out.println("AuthTokenFilter: Public static resource /uploads/**, skip JWT validation");
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        // Chỉ bỏ qua xác thực cho GET /api/books/**
         if (uri.startsWith("/api/books/") && method.equalsIgnoreCase("GET")) {
             System.out.println("AuthTokenFilter: Public GET /api/books/**, skip JWT validation");
             filterChain.doFilter(request, response);

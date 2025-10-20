@@ -49,6 +49,11 @@ be-qltv/replay_pid*
 # Compiled class files
 be-qltv/**/*.class
 
+# Uploaded files (user-generated content)
+uploads/
+be-qltv/uploads/
+fe-qltv/uploads/
+
 # ===================================
 # FRONTEND - ANGULAR
 # ===================================

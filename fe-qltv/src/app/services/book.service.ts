@@ -117,6 +117,23 @@ export class BookService {
     return this.http.delete(`${this.apiUrl}/${id}`, this.getHttpOptions());
   }
 
+  /**
+   * Upload book cover image
+   */
+  uploadCoverImage(file: File): Observable<{ imageUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: token ? `Bearer ${token}` : '',
+    });
+
+    return this.http.post<{ imageUrl: string }>(`${this.apiUrl}/upload-cover`, formData, {
+      headers,
+    });
+  }
+
   // Search books by keyword (simple)
   searchBooks(keyword: string): Observable<Book[]> {
     const params = keyword ? { params: new HttpParams().set('q', keyword) } : {};

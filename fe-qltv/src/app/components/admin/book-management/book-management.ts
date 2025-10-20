@@ -135,6 +135,10 @@ export class BookManagement implements OnInit, OnDestroy {
   hoveredCategory: any = null;
   hoveredPublisher: any = null;
 
+  // File upload properties
+  selectedFile: File | null = null;
+  imagePreview: string | null = null;
+
   constructor(
     private router: Router,
     private bookService: BookService,
@@ -458,6 +462,8 @@ export class BookManagement implements OnInit, OnDestroy {
       categoryInput: '',
       publisherInput: '',
     });
+    this.selectedFile = null;
+    this.imagePreview = null;
     this.showModal = true;
   }
 
@@ -482,6 +488,8 @@ export class BookManagement implements OnInit, OnDestroy {
       publisher: book.publisher || '',
       author: book.author || '',
     });
+    this.selectedFile = null;
+    this.imagePreview = book.coverImage || null;
     this.showModal = true;
   }
 
@@ -489,6 +497,8 @@ export class BookManagement implements OnInit, OnDestroy {
     this.showModal = false;
     this.currentBook = this.createEmptyBook();
     this.isEditing = false;
+    this.selectedFile = null;
+    this.imagePreview = null;
   }
 
   openDetailModal(book: Book): void {
@@ -515,94 +525,121 @@ export class BookManagement implements OnInit, OnDestroy {
   saveBook(): void {
     if (this.bookForm.valid) {
       const formValue = this.bookForm.value;
-      // Tìm id tác giả từ tên nhập vào
-      const authorName = formValue.authorInput || formValue.author || '';
-      const authorObj = this.authors.find((a) => a.name === authorName);
-      const authorIds = authorObj && authorObj.id ? [authorObj.id] : [];
 
-      const categoryName = formValue.categoryInput || '';
-      const categoryObj = this.categories.find((c) => c.name === categoryName);
-      const categoryId = categoryObj && categoryObj.id ? categoryObj.id : 0;
-
-      // Lấy publisherId từ dropdown
-      const publisherName = formValue.publisherInput || '';
-      const publisherObj = this.publishers.find((p) => p.name === publisherName);
-      const publisherId = publisherObj && publisherObj.id ? publisherObj.id : null;
-
-      if (this.isEditing && this.currentBook.id) {
-        // Update existing book
-        const bookToUpdate = {
-          ...this.currentBook,
-          ...formValue,
-          author: authorName,
-          authorIds: authorIds,
-          category: categoryName,
-          categoryId: categoryId,
-          publisher: publisherName,
-          publisherId: publisherId,
-          publicationYear: formValue.publishYear || new Date().getFullYear(),
-          totalCopies: formValue.totalCopies || 1,
-          availableCopies: formValue.availableCopies || formValue.totalCopies || 1,
-        };
-
-        console.log('Updating book with data:', bookToUpdate);
-        this.bookService.updateBook(this.currentBook.id, bookToUpdate).subscribe({
-          next: (updatedBook) => {
-            const index = this.books.findIndex((b) => b.id === updatedBook.id);
-            if (index !== -1) {
-              this.books[index] = updatedBook;
-            }
-            this.filteredBooks = [...this.books];
-            this.updatePagination();
-            this.updateStatistics();
-            alert('Cập nhật sách thành công!');
-            this.closeModal();
+      // If file selected, upload first
+      if (this.selectedFile) {
+        this.bookService.uploadCoverImage(this.selectedFile).subscribe({
+          next: (response) => {
+            // Set uploaded image URL
+            formValue.coverImage = 'http://localhost:8081' + response.imageUrl;
+            this.processSaveBook(formValue);
           },
           error: (error) => {
-            console.error('Error updating book:', error);
-            alert('Có lỗi xảy ra khi cập nhật sách!');
+            console.error('Error uploading image:', error);
+            alert('Lỗi khi upload ảnh: ' + (error.error?.error || 'Unknown error'));
           },
         });
       } else {
-        // Thêm mới sách - Đảm bảo trường authorIds gửi lên
-        const bookRequest = {
-          title: formValue.title,
-          author: authorName,
-          authorIds: authorIds,
-          category: categoryName,
-          categoryId: categoryId,
-          publisher: publisherName,
-          publisherId: publisherId,
-          publicationYear: formValue.publishYear || new Date().getFullYear(),
-          genre: formValue.genre,
-          totalCopies: formValue.totalCopies || 1,
-          availableCopies: formValue.totalCopies || 1,
-          isbn: formValue.isbn,
-          description: formValue.description,
-          pages: formValue.pages,
-          status: formValue.status,
-          coverImage: formValue.coverImage,
-        };
-
-        console.log('Sending book request:', bookRequest);
-
-        this.bookService.createBook(bookRequest).subscribe({
-          next: (newBook) => {
-            this.books.push(newBook);
-            this.filteredBooks = [...this.books];
-            this.updatePagination();
-            this.updateStatistics();
-            alert('Thêm sách thành công!');
-            this.closeModal();
-          },
-          error: (error) => {
-            console.error('Error creating book:', error);
-            alert('Có lỗi xảy ra khi thêm sách!');
-          },
-        });
+        // No file, just create/update book with URL (if provided)
+        this.processSaveBook(formValue);
       }
     } else {
       alert('Vui lòng nhập đầy đủ thông tin bắt buộc!');
+    }
+  }
+
+  private processSaveBook(formValue: any): void {
+    // Tìm id tác giả từ tên nhập vào
+    const authorName = formValue.authorInput || formValue.author || '';
+    const authorObj = this.authors.find((a) => a.name === authorName);
+    const authorIds = authorObj && authorObj.id ? [authorObj.id] : [];
+
+    const categoryName = formValue.categoryInput || '';
+    const categoryObj = this.categories.find((c) => c.name === categoryName);
+    const categoryId = categoryObj && categoryObj.id ? categoryObj.id : 0;
+
+    // Lấy publisherId từ dropdown
+    const publisherName = formValue.publisherInput || '';
+    const publisherObj = this.publishers.find((p) => p.name === publisherName);
+    const publisherId = publisherObj && publisherObj.id ? publisherObj.id : null;
+
+    if (this.isEditing && this.currentBook.id) {
+      // Update existing book
+      const bookToUpdate = {
+        ...this.currentBook,
+        ...formValue,
+        author: authorName,
+        authorIds: authorIds,
+        category: categoryName,
+        categoryId: categoryId,
+        publisher: publisherName,
+        publisherId: publisherId,
+        publicationYear: formValue.publishYear || new Date().getFullYear(),
+        totalCopies: formValue.totalCopies || 1,
+        availableCopies: formValue.availableCopies || formValue.totalCopies || 1,
+      };
+
+      console.log('Updating book with data:', bookToUpdate);
+      this.bookService.updateBook(this.currentBook.id, bookToUpdate).subscribe({
+        next: (updatedBook) => {
+          const index = this.books.findIndex((b) => b.id === updatedBook.id);
+          if (index !== -1) {
+            this.books[index] = updatedBook;
+          }
+          this.filteredBooks = [...this.books];
+          this.updatePagination();
+          this.updateStatistics();
+          alert('Cập nhật sách thành công!');
+          this.closeModal();
+          // Clear file selection after successful save
+          this.selectedFile = null;
+          this.imagePreview = null;
+        },
+        error: (error) => {
+          console.error('Error updating book:', error);
+          alert('Có lỗi xảy ra khi cập nhật sách!');
+        },
+      });
+    } else {
+      // Thêm mới sách - Đảm bảo trường authorIds gửi lên
+      const bookRequest = {
+        title: formValue.title,
+        author: authorName,
+        authorIds: authorIds,
+        category: categoryName,
+        categoryId: categoryId,
+        publisher: publisherName,
+        publisherId: publisherId,
+        publicationYear: formValue.publishYear || new Date().getFullYear(),
+        genre: formValue.genre,
+        totalCopies: formValue.totalCopies || 1,
+        availableCopies: formValue.totalCopies || 1,
+        isbn: formValue.isbn,
+        description: formValue.description,
+        pages: formValue.pages,
+        status: formValue.status,
+        coverImage: formValue.coverImage,
+      };
+
+      console.log('Sending book request:', bookRequest);
+
+      this.bookService.createBook(bookRequest).subscribe({
+        next: (newBook) => {
+          this.books.push(newBook);
+          this.filteredBooks = [...this.books];
+          this.updatePagination();
+          this.updateStatistics();
+          alert('Thêm sách thành công!');
+          this.closeModal();
+          // Clear file selection after successful save
+          this.selectedFile = null;
+          this.imagePreview = null;
+        },
+        error: (error) => {
+          console.error('Error creating book:', error);
+          alert('Có lỗi xảy ra khi thêm sách!');
+        },
+      });
     }
   }
 
@@ -767,6 +804,147 @@ export class BookManagement implements OnInit, OnDestroy {
     const publisherObj = this.publishers.find((p) => p.name === select.value);
     if (publisherObj) {
       this.selectPublisherSuggestion(publisherObj);
+    }
+  }
+
+  /**
+   * Handle file selection
+   */
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Vui lòng chọn file ảnh!');
+        this.selectedFile = null;
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Kích thước file phải nhỏ hơn 10MB!');
+        this.selectedFile = null;
+        return;
+      }
+
+      // Preview image
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  /**
+   * Clear selected image
+   */
+  clearImage(): void {
+    this.selectedFile = null;
+    this.imagePreview = null;
+    this.bookForm.patchValue({ coverImage: '' });
+  }
+
+  onSubmit() {
+    if (this.bookForm.valid) {
+      const formValue = this.bookForm.value;
+
+      // If file selected, upload first
+      if (this.selectedFile) {
+        this.bookService.uploadCoverImage(this.selectedFile).subscribe({
+          next: (response) => {
+            // Set uploaded image URL
+            formValue.coverImage = 'http://localhost:8081' + response.imageUrl;
+            this.createOrUpdateBook(formValue);
+          },
+          error: (error) => {
+            console.error('Error uploading image:', error);
+            alert('Lỗi khi upload ảnh: ' + (error.error?.error || 'Unknown error'));
+          },
+        });
+      } else {
+        // No file, just create/update book with URL (if provided)
+        this.createOrUpdateBook(formValue);
+      }
+    } else {
+      alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+    }
+  }
+
+  private createOrUpdateBook(formValue: any) {
+    if (!this.isEditing) {
+      // Add new book
+      const newBook: BookCreateRequest = {
+        title: formValue.title,
+        author: formValue.authorInput,
+        categoryId: formValue.categoryId,
+        publisher: formValue.publisherInput,
+        publicationYear: formValue.publishYear || new Date().getFullYear(),
+        isbn: formValue.isbn,
+        totalCopies: formValue.totalCopies,
+        description: formValue.description,
+        publishYear: formValue.publishYear,
+        pages: formValue.pages,
+        genre: formValue.genre,
+        coverImage: formValue.coverImage,
+      };
+
+      this.bookService.createBook(newBook).subscribe({
+        next: (book) => {
+          this.books.push(book);
+          this.filteredBooks = [...this.books];
+          this.updatePagination();
+          this.updateStatistics();
+          alert('Thêm sách thành công!');
+          this.closeModal();
+        },
+        error: (error) => {
+          console.error('Error adding book:', error);
+          alert('Có lỗi xảy ra khi thêm sách!');
+        },
+      });
+    } else {
+      // Update existing book
+      if (!this.currentBook.id) {
+        alert('Không tìm thấy ID sách để cập nhật!');
+        return;
+      }
+
+      const updatedBook: Book = {
+        ...this.currentBook,
+        title: formValue.title,
+        author: formValue.authorInput,
+        categoryId: formValue.categoryId,
+        publisher: formValue.publisherInput,
+        isbn: formValue.isbn,
+        totalCopies: formValue.totalCopies,
+        description: formValue.description,
+        publishYear: formValue.publishYear,
+        pages: formValue.pages,
+        genre: formValue.genre,
+        status: formValue.status,
+        coverImage: formValue.coverImage,
+      };
+
+      this.bookService.updateBook(this.currentBook.id, updatedBook).subscribe({
+        next: (book) => {
+          const index = this.books.findIndex((b) => b.id === book.id);
+          if (index !== -1) {
+            this.books[index] = book;
+            this.filteredBooks = [...this.books];
+            this.updatePagination();
+            this.updateStatistics();
+            alert('Cập nhật sách thành công!');
+            this.closeModal();
+          }
+        },
+        error: (error) => {
+          console.error('Error updating book:', error);
+          alert('Có lỗi xảy ra khi cập nhật sách!');
+        },
+      });
     }
   }
 }

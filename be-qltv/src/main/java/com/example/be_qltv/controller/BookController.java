@@ -9,6 +9,7 @@ import com.example.be_qltv.service.BookService;
 import com.example.be_qltv.service.AuthorService;
 import com.example.be_qltv.service.CategoryService;
 import com.example.be_qltv.service.PublisherService;
+import com.example.be_qltv.service.FileUploadService;
 import com.example.be_qltv.enums.BookStatus;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +21,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import java.util.HashMap;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -41,6 +45,9 @@ public class BookController {
     
     @Autowired
     private PublisherService publisherService;
+    
+    @Autowired
+    private FileUploadService fileUploadService;
     
     @GetMapping
     public ResponseEntity<List<BookDTO>> getAllBooks() {
@@ -302,5 +309,24 @@ public class BookController {
             @RequestParam(defaultValue = "10") int size) {
         Page<BookDTO> books = bookService.getFavoriteBooks(PageRequest.of(page, size));
         return ResponseEntity.ok(books);
+    }
+    
+    /**
+     * Upload book cover image
+     * POST /api/books/upload-cover
+     */
+    @PostMapping("/upload-cover")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN')")
+    public ResponseEntity<?> uploadCoverImage(@RequestParam("file") MultipartFile file) {
+        try {
+            String imageUrl = fileUploadService.uploadFile(file);
+            Map<String, String> response = new HashMap<>();
+            response.put("imageUrl", imageUrl);
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to upload image: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 }
