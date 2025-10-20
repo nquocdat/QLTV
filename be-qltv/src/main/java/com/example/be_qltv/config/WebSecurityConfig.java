@@ -70,7 +70,9 @@ public class WebSecurityConfig {
                     .requestMatchers("/uploads/**").permitAll()
                     // Chỉ cho phép GET /api/books/** là public
                     .requestMatchers("GET", "/api/books/**").permitAll()
-                    // Các phương thức khác phải xác thực - cho phép cả ADMIN và LIBRARIAN
+                        .requestMatchers("/api/gemini/**").permitAll() // ✅ Cho phép truy cập Gemini API không cần đăng nhập
+
+                        // Các phương thức khác phải xác thực - cho phép cả ADMIN và LIBRARIAN
                     .requestMatchers("POST", "/api/books/**").hasAnyRole("ADMIN", "LIBRARIAN")
                     .requestMatchers("PUT", "/api/books/**").hasAnyRole("ADMIN", "LIBRARIAN")
                     .requestMatchers("DELETE", "/api/books/**").hasAnyRole("ADMIN", "LIBRARIAN")

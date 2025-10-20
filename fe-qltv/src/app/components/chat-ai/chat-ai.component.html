@@ -1,0 +1,23 @@
+<!-- Nút mở chat -->
+<div class="chat-toggle" (click)="toggleChat()">
+  💬
+</div>
+
+<!-- Hộp chat -->
+<div class="chat-box" *ngIf="isOpen">
+  <div class="chat-header">
+    <span>Gemini AI - Trợ lý ảo</span>
+    <button (click)="toggleChat()">✖</button>
+  </div>
+
+  <div class="chat-body">
+    <div *ngFor="let msg of messages" [ngClass]="{'user': msg.sender === 'Bạn', 'ai': msg.sender === 'Gemini'}">
+      <strong>{{msg.sender}}:</strong> {{msg.text}}
+    </div>
+  </div>
+
+  <div class="chat-input">
+    <input [(ngModel)]="userMessage" (keyup.enter)="sendMessage()" placeholder="Nhập tin nhắn..." />
+    <button (click)="sendMessage()">Gửi</button>
+  </div>
+</div>

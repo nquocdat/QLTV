@@ -41,7 +41,15 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        
+        String path = request.getRequestURI();
+        if (path.contains("/api/gemini")) {
+            System.out.println("AuthTokenFilter: Skipping JWT for Gemini API path " + path);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+
+
         // Chỉ bỏ qua xác thực cho GET /api/books/**
         if (uri.startsWith("/api/books/") && method.equalsIgnoreCase("GET")) {
             System.out.println("AuthTokenFilter: Public GET /api/books/**, skip JWT validation");

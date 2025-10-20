@@ -9,6 +9,7 @@ import { BookService } from '../../../services/book.service';
 import { LibraryService, LibraryStats } from '../../../services/library.service';
 import { LoanService } from '../../../services/loan.service';
 import { ReviewService, ReviewDTO, ReviewStats } from '../../../services/review.service';
+import { ChatAiComponent } from '../../chat-ai/chat-ai.component'; 
 import {
   MembershipTier,
   UserMembership,
@@ -32,6 +33,7 @@ import { StarRating } from '../../shared/star-rating/star-rating';
     PaymentMethodModalComponent,
     BookCopiesListComponent,
     StarRating,
+     ChatAiComponent, 
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',

@@ -1,29 +1,32 @@
 import { Injectable } from '@angular/core';
-// @ts-ignore
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class GeminiService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
+  private readonly API_URL = 'http://localhost:8081/api/gemini/chat'; // ✅ endpoint backend
 
-  constructor() {
-    const API_KEY = 'YOUR_API_KEY'; // 🔑 Thay bằng key bạn lấy ở Google AI Studio
-    this.genAI = new GoogleGenerativeAI(API_KEY);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  }
+  constructor() {}
 
   async chat(message: string): Promise<string> {
     try {
-      const result = await this.model.generateContent(message);
-      return result.response.text();
-    } catch (err) {
-      console.error('Gemini error:', err);
-      return 'Xin lỗi, tôi đang gặp sự cố khi xử lý yêu cầu.';
+      const response = await fetch(this.API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+
+      // Parse JSON phản hồi từ backend Spring Boot
+      const data = await response.json();
+
+      if (data.success) {
+        return data.message; // ✅ backend trả đúng field này
+      } else {
+        return data.error || '❌ Có lỗi từ Gemini backend.';
+      }
+    } catch (error) {
+      console.error('❌ Lỗi kết nối Gemini:', error);
+      return '❌ Không thể kết nối tới máy chủ Gemini.';
     }
   }
 }

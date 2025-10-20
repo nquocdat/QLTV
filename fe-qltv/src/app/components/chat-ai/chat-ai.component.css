@@ -1,0 +1,90 @@
+/* Nút nổi */
+.chat-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  transition: 0.3s;
+  z-index: 9999;
+}
+
+.chat-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* Hộp chat */
+.chat-box {
+  position: fixed;
+  bottom: 85px;
+  right: 20px;
+  width: 350px;
+  height: 480px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  z-index: 10000;
+}
+
+.chat-header {
+  background: #3b82f6;
+  color: white;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.chat-body {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: #f7f9fb;
+}
+
+.chat-body .user {
+  text-align: right;
+  color: #111;
+  margin: 5px 0;
+}
+
+.chat-body .ai {
+  text-align: left;
+  color: #1e3a8a;
+  margin: 5px 0;
+}
+
+.chat-input {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.chat-input button {
+  margin-left: 8px;
+  background: #3b82f6;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
